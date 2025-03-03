@@ -33,7 +33,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
+      {/* Video Background with luxury poster image */}
       <div className="absolute inset-0 w-full h-full bg-black">
         <div className="absolute inset-0 bg-black/60 z-10"></div>
         <video
@@ -42,7 +42,7 @@ const HeroSection = () => {
           muted
           loop
           playsInline
-          poster="/img/hero-poster.jpg"
+          poster="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
         >
           <source src="https://player.vimeo.com/external/478597646.sd.mp4?s=d8cfbe3a9ae42b2c98778d9bd067030c941fb0d2&profile_id=165&oauth2_token_id=57447761" type="video/mp4" />
         </video>

@@ -33,8 +33,7 @@ const Navbar = () => {
     { name: 'About Us', href: '/about' },
     { name: 'Deals', href: '/deals' },
     { name: 'Tour Packages', href: '/packages' },
-    { name: 'Loyalty Program', href: '/loyalty' },
-    { name: 'Blog', href: '/blog' },
+    { name: 'Videos', href: '/videos' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -45,13 +44,9 @@ const Navbar = () => {
         isScrolled ? 'bg-black/90 backdrop-blur-lg py-3 shadow-md' : 'bg-transparent py-6'
       )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <span className="text-2xl font-display font-bold text-gold">LuxStay</span>
-          <span className="text-2xl font-display font-light text-white ml-1">Elite</span>
-        </Link>
-
+      <div className="container mx-auto px-4 flex items-center justify-end">
+        {/* Logo - removed from here as it's handled in the parent component */}
+        
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => (
@@ -66,7 +61,7 @@ const Navbar = () => {
         </div>
 
         {/* Login/Signup Button */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center ml-8">
           <button className="flex items-center space-x-2 bg-gold-dark hover:bg-gold text-white hover:text-black px-4 py-2 rounded-md transition-colors duration-300">
             <User size={18} />
             <span>Login</span>

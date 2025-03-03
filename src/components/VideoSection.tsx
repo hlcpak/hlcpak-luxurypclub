@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const VideoSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -47,6 +48,10 @@ const VideoSection = () => {
           <p className="mt-6 text-white/80 max-w-2xl mx-auto">
             Immerse yourself in extraordinary travel experiences at the world's most exclusive destinations.
           </p>
+          <Link to="/videos" className="inline-flex items-center mt-4 text-gold hover:text-white transition-colors">
+            <span>View All Luxury Videos</span>
+            <ExternalLink size={16} className="ml-2" />
+          </Link>
         </div>
         
         <div className="relative max-w-4xl mx-auto overflow-hidden rounded-lg">
@@ -60,6 +65,7 @@ const VideoSection = () => {
               muted
               loop
               playsInline
+              poster="https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?auto=format&fit=crop&w=1600&q=80"
             >
               <source src="https://player.vimeo.com/external/370331493.sd.mp4?s=e90dcaba73c19e0e36f03406b47bbd6992dd6c1c&profile_id=139&oauth2_token_id=57447761" type="video/mp4" />
               Your browser does not support the video tag.

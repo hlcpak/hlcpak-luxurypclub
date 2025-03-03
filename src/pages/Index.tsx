@@ -18,7 +18,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-black overflow-hidden">
-      <div className="absolute top-0 left-0 z-50 p-4 md:p-6">
+      <div className="absolute top-0 left-0 z-50 p-4 md:p-6 ml-4">
         <h1 className="text-xl md:text-2xl font-display font-bold text-gold">
           Luxury Privilege Club
         </h1>
