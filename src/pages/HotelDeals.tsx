@@ -75,7 +75,7 @@ const HotelDeals = () => {
                               <Star key={i} size={16} className="fill-gold text-gold" />
                             ))}
                           </div>
-                          <span className="text-xs bg-gold text-black px-2 py-1 rounded">
+                          <span className="text-xs bg-gold text-black px-2 py-1 rounded opacity-100 group-hover:opacity-100">
                             {deal.deal}
                           </span>
                         </div>
@@ -97,7 +97,7 @@ const HotelDeals = () => {
                       
                       <div className="mt-4 pt-4 border-t border-white/10">
                         <div className="flex justify-between items-center">
-                          <div className="opacity-100">
+                          <div className="opacity-100 group-hover:opacity-100">
                             <span className="text-xs text-white/50">Member Price</span>
                             <div className="text-xl font-display font-bold text-gold">
                               ${deal.member_price}

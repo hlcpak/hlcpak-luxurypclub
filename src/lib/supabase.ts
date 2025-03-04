@@ -82,6 +82,34 @@ export const getTourPackages = async (): Promise<TourPackage[]> => {
   return data || [];
 };
 
+export const getUsers = async (): Promise<User[]> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+export const getTransactions = async (): Promise<Transaction[]> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
 export const addHotelDeal = async (deal: Omit<HotelDeal, 'id' | 'created_at'>): Promise<HotelDeal | null> => {
   const { data, error } = await supabase
     .from('hotel_deals')
@@ -170,4 +198,64 @@ export const deleteTourPackage = async (id: number): Promise<boolean> => {
   }
   
   return true;
+};
+
+export const addUser = async (user: Omit<User, 'id' | 'created_at'>): Promise<User | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .insert([{ ...user }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding user:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating user:', error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const deleteUser = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('users')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting user:', error);
+    return false;
+  }
+  
+  return true;
+};
+
+export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction | null> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert([{ ...transaction }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding transaction:', error);
+    return null;
+  }
+  
+  return data;
 };

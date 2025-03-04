@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { Pencil, Trash, PlusCircle, Save, LogOut, Eye, Loader2 } from 'lucide-react';
+import { Pencil, Trash, PlusCircle, Save, LogOut, Eye, Loader2, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getHotelDeals, 
-  getTourPackages, 
+  getTourPackages,
+  getUsers,
+  getTransactions,
   addHotelDeal, 
   updateHotelDeal, 
   deleteHotelDeal,
   addTourPackage,
   updateTourPackage,
   deleteTourPackage,
+  addUser,
+  updateUser,
+  deleteUser,
   HotelDeal,
-  TourPackage
+  TourPackage,
+  User,
+  Transaction
 } from '@/lib/supabase';
 
 const Admin = () => {
@@ -22,10 +29,14 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const [hotelDeals, setHotelDeals] = useState<HotelDeal[]>([]);
   const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [editingDeal, setEditingDeal] = useState<HotelDeal | null>(null);
   const [editingPackage, setEditingPackage] = useState<TourPackage | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +47,8 @@ const Admin = () => {
     if (isAuthenticated) {
       fetchHotelDeals();
       fetchTourPackages();
+      fetchUsers();
+      fetchTransactions();
     }
   }, [isAuthenticated]);
 
@@ -70,6 +83,37 @@ const Admin = () => {
       });
     } finally {
       setLoadingPackages(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const usersList = await getUsers();
+      setUsers(usersList);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const transactionsList = await getTransactions();
+      setTransactions(transactionsList);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load transactions",
+        variant: "destructive"
+      });
     }
   };
 
@@ -254,6 +298,82 @@ const Admin = () => {
         toast({
           title: "Error",
           description: "Failed to delete tour package",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleAddUser = async () => {
+    const newUser: Omit<User, 'id' | 'created_at'> = {
+      name: 'New Member',
+      email: 'member@example.com',
+      membership_tier: 'Silver',
+      points: 0
+    };
+
+    try {
+      const addedUser = await addUser(newUser);
+      if (addedUser) {
+        setUsers([addedUser, ...users]);
+        toast({
+          title: "Success",
+          description: "Member added successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add member",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      const updatedUser = await updateUser(editingUser.id, editingUser);
+      if (updatedUser) {
+        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+        setEditingUser(null);
+        toast({
+          title: "Success",
+          description: "Member updated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update member",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this member?')) {
+      try {
+        const success = await deleteUser(id);
+        if (success) {
+          setUsers(users.filter(u => u.id !== id));
+          toast({
+            title: "Success",
+            description: "Member deleted successfully",
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting member:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete member",
           variant: "destructive"
         });
       }
@@ -575,18 +695,262 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="members" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <h2 className="text-xl font-display font-semibold text-white mb-6">Manage Members</h2>
-            <p className="text-white/70">Membership management functionality will be implemented here.</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-display font-semibold text-white">Manage Members</h2>
+              <button 
+                onClick={handleAddUser}
+                className="flex items-center bg-gold-dark hover:bg-gold text-white hover:text-black px-3 py-2 rounded-md transition-colors"
+              >
+                <UserPlus size={16} className="mr-2" />
+                Add New Member
+              </button>
+            </div>
+            
+            {loadingUsers ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Name</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Email</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Membership</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Points</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className="border-b border-white/10 hover:bg-white/10">
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="text"
+                              value={editingUser.name}
+                              onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.name
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="email"
+                              value={editingUser.email}
+                              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.email
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <select
+                              value={editingUser.membership_tier}
+                              onChange={(e) => setEditingUser({...editingUser, membership_tier: e.target.value as 'Silver' | 'Gold' | 'Platinum'})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            >
+                              <option value="Silver">Silver</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Platinum">Platinum</option>
+                            </select>
+                          ) : (
+                            <span className={`${user.membership_tier === 'Gold' ? 'text-gold' : 
+                              user.membership_tier === 'Platinum' ? 'text-purple-400' : 'text-gray-300'}`}>
+                              {user.membership_tier}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="number"
+                              value={editingUser.points}
+                              onChange={(e) => setEditingUser({...editingUser, points: parseInt(e.target.value)})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.points
+                          )}
+                        </td>
+                        <td className="py-3 px-4 flex justify-center space-x-2">
+                          {editingUser?.id === user.id ? (
+                            <button 
+                              onClick={handleUpdateUser}
+                              className="p-1 text-gold hover:text-white transition-colors"
+                            >
+                              <Save size={16} />
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleEditUser(user)}
+                              className="p-1 text-white/70 hover:text-gold transition-colors"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="content" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
             <h2 className="text-xl font-display font-semibold text-white mb-6">Manage Website Content</h2>
-            <p className="text-white/70">Content management functionality will be implemented here.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/5 p-6 rounded-lg border border-white/10">
+                <h3 className="text-lg font-medium text-white mb-4">Home Page Content</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Hero Title
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="Luxury Privilege Club"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Hero Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="Exclusive travel experiences for the discerning few"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Featured Section Title
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="Featured Luxury Destinations"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/5 p-6 rounded-lg border border-white/10">
+                <h3 className="text-lg font-medium text-white mb-4">About Page Content</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      About Title
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="About Luxury Privilege Club"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Company Description
+                    </label>
+                    <textarea
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white h-24"
+                      defaultValue="Luxury Privilege Club is an exclusive travel club offering exceptional experiences and unparalleled service to our members."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           <TabsContent value="settings" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
             <h2 className="text-xl font-display font-semibold text-white mb-6">Website Settings</h2>
-            <p className="text-white/70">Settings management functionality will be implemented here.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/5 p-6 rounded-lg border border-white/10">
+                <h3 className="text-lg font-medium text-white mb-4">General Settings</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Website Title
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="Luxury Privilege Club"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Contact Email
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="contact@luxuryprivilegeclub.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="+1 (800) 123-4567"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/5 p-6 rounded-lg border border-white/10">
+                <h3 className="text-lg font-medium text-white mb-4">Social Media</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Instagram
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="https://instagram.com/luxuryprivilegeclub"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Facebook
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="https://facebook.com/luxuryprivilegeclub"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Twitter
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      defaultValue="https://twitter.com/luxuryclub"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
