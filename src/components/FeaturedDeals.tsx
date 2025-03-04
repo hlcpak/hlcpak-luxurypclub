@@ -140,7 +140,7 @@ const FeaturedDeals = () => {
                 <Star key={i} size={16} className="fill-gold text-gold" />
               ))}
             </div>
-            <span className="text-xs bg-gold text-black px-2 py-1 rounded">
+            <span className="text-xs bg-gold text-black px-2 py-1 rounded group-hover:bg-gold">
               {item.deal}
             </span>
           </div>
@@ -162,7 +162,7 @@ const FeaturedDeals = () => {
         
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="flex justify-between items-center">
-            <div>
+            <div className="group-hover:opacity-100">
               <span className="text-xs text-white/50">Member Price</span>
               <div className="text-xl font-display font-bold text-gold">
                 ${item.memberPrice}

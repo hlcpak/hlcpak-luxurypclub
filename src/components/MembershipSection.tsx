@@ -92,18 +92,6 @@ const MembershipSection = () => {
     }
   ];
 
-  // Additional tier benefits for comparison chart
-  const tierBenefits = [
-    {label: 'Discount on regular rates', silver: '15%', gold: '25%', platinum: '30%'},
-    {label: 'Loyalty points multiplier', silver: '1x', gold: '2x', platinum: '3x'},
-    {label: 'Room upgrades', silver: 'When available', gold: 'Guaranteed', platinum: 'Suite upgrades'},
-    {label: 'Welcome amenities', silver: 'Basic', gold: 'Luxury', platinum: 'Exclusive gifts'},
-    {label: 'Late check-out', silver: 'Upon request', gold: 'Up to 4pm', platinum: 'Guaranteed'},
-    {label: 'Concierge service', silver: 'Basic', gold: 'Dedicated', platinum: 'Personal'},
-    {label: 'Airport transfers', silver: 'Not included', gold: 'Discounted', platinum: 'Included'},
-    {label: 'VIP events access', silver: 'No', gold: 'Select events', platinum: 'All events'},
-  ];
-
   return (
     <section 
       ref={sectionRef} 
@@ -170,39 +158,7 @@ const MembershipSection = () => {
           ))}
         </div>
 
-        {/* Tier Comparison Chart */}
-        <div className="mt-20 opacity-0 translate-y-10 transition-all duration-1000 delay-500" ref={(el) => (itemsRef.current[3] = el)}>
-          <h3 className="text-2xl font-display font-semibold text-white text-center mb-8">Membership Tiers Comparison</h3>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[768px] border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-4 text-left text-white/90 font-normal">Benefits</th>
-                  <th className="p-4 text-center text-white bg-white/5 font-semibold">Silver</th>
-                  <th className="p-4 text-center text-white bg-white/10 font-semibold">Gold</th>
-                  <th className="p-4 text-center text-gold bg-white/5 font-semibold">Platinum</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tierBenefits.map((benefit, index) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white/5' : ''}>
-                    <td className="p-4 text-white/80">{benefit.label}</td>
-                    <td className="p-4 text-center text-white/70">{benefit.silver}</td>
-                    <td className="p-4 text-center text-white/70">{benefit.gold}</td>
-                    <td className="p-4 text-center text-gold/90">{benefit.platinum}</td>
-                  </tr>
-                ))}
-                <tr className="bg-white/5">
-                  <td className="p-4 text-white/80 font-semibold">Annual Fee</td>
-                  <td className="p-4 text-center text-white/70">Rs. 35,000</td>
-                  <td className="p-4 text-center text-white/70">Rs. 70,000</td>
-                  <td className="p-4 text-center text-gold/90">Rs. 150,000</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* Tier Comparison Chart has been removed */}
       </div>
     </section>
   );

@@ -38,10 +38,10 @@ const VideoSection = () => {
   return (
     <section 
       ref={sectionRef} 
-      className="py-24 bg-black relative opacity-0 translate-y-10 transition-all duration-1000"
+      className="py-16 bg-black relative opacity-0 translate-y-10 transition-all duration-1000"
     >
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <span className="text-xs uppercase tracking-widest text-gold-dark">Explore</span>
           <h2 className="text-3xl md:text-4xl mt-2 text-white">Luxury <span className="text-gold">Destinations</span></h2>
           <div className="h-px w-24 bg-gold-dark mx-auto mt-4"></div>
@@ -54,10 +54,10 @@ const VideoSection = () => {
           </Link>
         </div>
         
-        <div className="relative max-w-4xl mx-auto overflow-hidden rounded-lg">
+        <div className="relative max-w-4xl mx-auto overflow-hidden rounded-lg" style={{ height: "500px" }}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
           
-          <div className="aspect-w-16 aspect-h-9 bg-black/20">
+          <div className="w-full h-full bg-black/20">
             <video
               id="luxury-video"
               className="w-full h-full object-cover"
