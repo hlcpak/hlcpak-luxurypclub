@@ -9,7 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      hotel_deals: {
+        Row: {
+          created_at: string
+          deal: string
+          description: string | null
+          duration: string
+          id: number
+          image: string
+          location: string
+          member_price: number
+          name: string
+          rating: number
+          regular_price: number
+        }
+        Insert: {
+          created_at?: string
+          deal: string
+          description?: string | null
+          duration: string
+          id?: number
+          image: string
+          location: string
+          member_price: number
+          name: string
+          rating: number
+          regular_price: number
+        }
+        Update: {
+          created_at?: string
+          deal?: string
+          description?: string | null
+          duration?: string
+          id?: number
+          image?: string
+          location?: string
+          member_price?: number
+          name?: string
+          rating?: number
+          regular_price?: number
+        }
+        Relationships: []
+      }
+      tour_packages: {
+        Row: {
+          created_at: string
+          deal: string
+          description: string | null
+          duration: string
+          id: number
+          image: string
+          location: string
+          member_price: number
+          name: string
+          rating: number
+          regular_price: number
+        }
+        Insert: {
+          created_at?: string
+          deal: string
+          description?: string | null
+          duration: string
+          id?: number
+          image: string
+          location: string
+          member_price: number
+          name: string
+          rating: number
+          regular_price: number
+        }
+        Update: {
+          created_at?: string
+          deal?: string
+          description?: string | null
+          duration?: string
+          id?: number
+          image?: string
+          location?: string
+          member_price?: number
+          name?: string
+          rating?: number
+          regular_price?: number
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: number
+          membership_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: number
+          membership_type: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: number
+          membership_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          membership_tier: string
+          name: string
+          points: number
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          membership_tier: string
+          name: string
+          points?: number
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          membership_tier?: string
+          name?: string
+          points?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

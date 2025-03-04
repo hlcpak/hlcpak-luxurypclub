@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Define your Supabase URL and key - these will be injected from environment variables
-const supabaseUrl = "https://lxcnlzeeheafepavmbcc.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4Y25semVlaGVhZmVwYXZtYmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDExMTYyODgsImV4cCI6MjA1NjY5MjI4OH0.t6ySqS5E-nZtiAQNnUY4vQes3DzM7zJ81fKfVDzHcMc";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://lxcnlzeeheafepavmbcc.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4Y25semVlaGVhZmVwYXZtYmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDExMTYyODgsImV4cCI6MjA1NjY5MjI4OH0.t6ySqS5E-nZtiAQNnUY4vQes3DzM7zJ81fKfVDzHcMc";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
