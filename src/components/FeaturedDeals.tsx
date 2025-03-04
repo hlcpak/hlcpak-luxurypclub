@@ -1,10 +1,15 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Star, Clock, MapPin, ArrowRight } from 'lucide-react';
+import { getHotelDeals, getTourPackages, HotelDeal, TourPackage } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
 const FeaturedDeals = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [hotelDeals, setHotelDeals] = useState<HotelDeal[]>([]);
+  const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,7 +39,44 @@ const FeaturedDeals = () => {
     };
   }, []);
 
-  const hotelDeals = [
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [deals, packages] = await Promise.all([
+          getHotelDeals(),
+          getTourPackages()
+        ]);
+        
+        if (deals.length > 0) {
+          setHotelDeals(deals);
+        } else {
+          setHotelDeals(fallbackHotelDeals);
+        }
+        
+        if (packages.length > 0) {
+          setTourPackages(packages);
+        } else {
+          setTourPackages(fallbackTourPackages);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load deals. Please try again later.",
+          variant: "destructive"
+        });
+        setHotelDeals(fallbackHotelDeals);
+        setTourPackages(fallbackTourPackages);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
+  const fallbackHotelDeals = [
     {
       id: 1,
       name: 'Four Seasons Resort Bora Bora',
@@ -42,10 +84,10 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Save 30% + Free Breakfast',
-      memberPrice: 850,
-      regularPrice: 1200,
+      member_price: 850,
+      regular_price: 1200,
       duration: '3-night minimum stay',
-      delay: 'delay-100'
+      created_at: new Date().toISOString()
     },
     {
       id: 2,
@@ -54,10 +96,10 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Suite Upgrade + Airport Transfer',
-      memberPrice: 720,
-      regularPrice: 950,
+      member_price: 720,
+      regular_price: 950,
       duration: 'Flexible dates',
-      delay: 'delay-200'
+      created_at: new Date().toISOString()
     },
     {
       id: 3,
@@ -66,14 +108,14 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Breakfast + $100 Spa Credit',
-      memberPrice: 680,
-      regularPrice: 890,
+      member_price: 680,
+      regular_price: 890,
       duration: 'Limited availability',
-      delay: 'delay-300'
+      created_at: new Date().toISOString()
     }
   ];
 
-  const tourPackages = [
+  const fallbackTourPackages = [
     {
       id: 1,
       name: 'Luxury Maldives Retreat',
@@ -81,10 +123,10 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Seaplane Transfers + All-Inclusive',
-      memberPrice: 3200,
-      regularPrice: 4500,
+      member_price: 3200,
+      regular_price: 4500,
       duration: '7 nights',
-      delay: 'delay-100'
+      created_at: new Date().toISOString()
     },
     {
       id: 2,
@@ -93,10 +135,10 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Private Guide + Yacht Day Trip',
-      memberPrice: 4100,
-      regularPrice: 5500,
+      member_price: 4100,
+      regular_price: 5500,
       duration: '10 nights',
-      delay: 'delay-200'
+      created_at: new Date().toISOString()
     },
     {
       id: 3,
@@ -105,26 +147,34 @@ const FeaturedDeals = () => {
       image: 'https://images.unsplash.com/photo-1548918604-c4ca435a2aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       rating: 5,
       deal: 'Daily Spa Treatments + Excursions',
-      memberPrice: 2800,
-      regularPrice: 3900,
+      member_price: 2800,
+      regular_price: 3900,
       duration: '8 nights',
-      delay: 'delay-300'
+      created_at: new Date().toISOString()
     }
   ];
 
-  // Reusable Deal Card component
+  const getDelayClass = (index: number): string => {
+    switch (index % 3) {
+      case 0: return 'delay-100';
+      case 1: return 'delay-200';
+      case 2: return 'delay-300';
+      default: return 'delay-100';
+    }
+  };
+
   const DealCard = ({ 
     item, 
     index, 
     type
   }: { 
-    item: typeof hotelDeals[0] | typeof tourPackages[0], 
+    item: (HotelDeal | TourPackage), 
     index: number,
     type: 'hotel' | 'tour'
   }) => (
     <div
       ref={(el) => (itemsRef.current[type === 'hotel' ? index : index + hotelDeals.length] = el)}
-      className={`group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${item.delay} hover:border-gold/50 hover:shadow-gold`}
+      className={`group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${getDelayClass(index)} hover:border-gold/50 hover:shadow-gold`}
     >
       <div className="relative overflow-hidden h-64">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
@@ -162,12 +212,12 @@ const FeaturedDeals = () => {
         
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="flex justify-between items-center">
-            <div className="group-hover:opacity-100">
+            <div className="opacity-100">
               <span className="text-xs text-white/50">Member Price</span>
               <div className="text-xl font-display font-bold text-gold">
-                ${item.memberPrice}
+                ${item.member_price}
                 <span className="text-sm text-white/60 ml-1 line-through">
-                  ${item.regularPrice}
+                  ${item.regular_price}
                 </span>
               </div>
             </div>
@@ -185,6 +235,18 @@ const FeaturedDeals = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <section className="py-24 bg-gradient-to-b from-black/95 to-black/90 relative">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gold"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section 
       ref={sectionRef} 
@@ -200,7 +262,6 @@ const FeaturedDeals = () => {
           </p>
         </div>
         
-        {/* Hotel Deals */}
         <div className="mb-16">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-2xl font-display font-semibold text-white">Hotel Deals</h3>
@@ -216,7 +277,6 @@ const FeaturedDeals = () => {
           </div>
         </div>
         
-        {/* Tour Packages */}
         <div>
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-2xl font-display font-semibold text-white">Tour Packages</h3>

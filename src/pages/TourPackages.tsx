@@ -1,12 +1,37 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { getTourPackages, TourPackage } from '@/lib/supabase';
+import { Star, MapPin, Clock } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const TourPackages = () => {
+  const [packages, setPackages] = useState<TourPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    fetchPackages();
   }, []);
+
+  const fetchPackages = async () => {
+    try {
+      setLoading(true);
+      const tourPackages = await getTourPackages();
+      setPackages(tourPackages);
+    } catch (error) {
+      console.error('Error fetching tour packages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load tour packages",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black overflow-hidden">
@@ -28,10 +53,78 @@ const TourPackages = () => {
               </p>
             </div>
 
-            {/* Content will be added here in future updates */}
-            <div className="py-20 text-center">
-              <p className="text-white/70 text-xl">Coming soon - Luxury tour packages with member discounts</p>
-            </div>
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gold"></div>
+              </div>
+            ) : packages.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {packages.map((pkg) => (
+                  <div key={pkg.id} className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden hover:border-gold/50 hover:shadow-gold">
+                    <div className="relative overflow-hidden h-64">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+                      <img 
+                        src={pkg.image} 
+                        alt={pkg.name} 
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute bottom-4 left-4 right-4 z-20">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-0.5">
+                            {[...Array(pkg.rating)].map((_, i) => (
+                              <Star key={i} size={16} className="fill-gold text-gold" />
+                            ))}
+                          </div>
+                          <span className="text-xs bg-gold text-black px-2 py-1 rounded">
+                            {pkg.deal}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-xl font-display font-semibold text-white mb-1 group-hover:text-gold transition-colors">
+                            {pkg.name}
+                          </h3>
+                          <div className="flex items-center text-white/60 text-sm">
+                            <MapPin size={14} className="mr-1" />
+                            {pkg.location}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <div className="flex justify-between items-center">
+                          <div className="opacity-100">
+                            <span className="text-xs text-white/50">Member Price</span>
+                            <div className="text-xl font-display font-bold text-gold">
+                              ${pkg.member_price}
+                              <span className="text-sm text-white/60 ml-1 line-through">
+                                ${pkg.regular_price}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center text-white/60 text-xs">
+                            <Clock size={14} className="mr-1" />
+                            {pkg.duration}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <button className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors">
+                        Book Now
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-20 text-center">
+                <p className="text-white/70 text-xl">No tour packages available at the moment. Please check back later.</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
