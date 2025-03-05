@@ -39,6 +39,12 @@ const HotelDeals = () => {
     navigate(`/deals/${dealId}`);
   };
 
+  // Silver membership discount (10%)
+  const calculateSilverPrice = (regularPrice: number, memberPrice: number) => {
+    // Apply silver discount to member price (10% off)
+    return memberPrice - (memberPrice * 0.10);
+  };
+
   return (
     <div className="min-h-screen bg-black overflow-hidden">
       <div className="absolute top-0 left-0 z-50 p-4 md:p-6">
@@ -102,19 +108,32 @@ const HotelDeals = () => {
                       </div>
                       
                       <div className="mt-4 pt-4 border-t border-white/10">
-                        <div className="flex justify-between items-center">
-                          <div className="opacity-100 group-hover:opacity-100">
-                            <span className="text-xs text-white/50">Member Price</span>
-                            <div className="text-xl font-display font-bold text-gold">
-                              ${deal.member_price}
-                              <span className="text-sm text-white/60 ml-1 line-through">
-                                ${deal.regular_price}
-                              </span>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="text-xs text-white/50">Member Price</span>
+                              <div className="text-xl font-display font-bold text-gold">
+                                ${deal.member_price}
+                                <span className="text-sm text-white/60 ml-1 line-through">
+                                  ${deal.regular_price}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center text-white/60 text-xs">
+                              <Clock size={14} className="mr-1" />
+                              {deal.duration}
                             </div>
                           </div>
-                          <div className="flex items-center text-white/60 text-xs">
-                            <Clock size={14} className="mr-1" />
-                            {deal.duration}
+                          
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <div className="bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9] text-xs px-2 py-0.5 rounded">
+                                Silver
+                              </div>
+                              <span className="text-sm font-medium text-[#C8C8C9]">
+                                ${calculateSilverPrice(deal.regular_price, deal.member_price).toFixed(0)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

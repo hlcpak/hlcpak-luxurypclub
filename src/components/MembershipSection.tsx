@@ -1,11 +1,23 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
 
 const MembershipSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const planRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,6 +45,33 @@ const MembershipSection = () => {
       });
     };
   }, []);
+
+  const handleJoinClick = (planName: string) => {
+    setSelectedPlan(planName);
+    setJoinDialogOpen(true);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would submit the form data to your backend
+    console.log('Form submitted:', { ...formData, plan: selectedPlan });
+    
+    // Close dialog and show success message
+    setJoinDialogOpen(false);
+    toast({
+      title: "Application Submitted",
+      description: `Thank you for joining our ${selectedPlan} membership plan. We'll contact you shortly!`,
+      variant: "default"
+    });
+    
+    // Reset form
+    setFormData({ name: '', email: '', phone: '' });
+  };
 
   const membershipPlans = [
     {
@@ -93,7 +132,7 @@ const MembershipSection = () => {
     <section
       ref={sectionRef}
       id="membership"
-      className="relative py-24 bg-black"
+      className="relative py-28 bg-black"
     >
       <div className="absolute inset-0 bg-[url('/img/pattern-dark.svg')] opacity-5"></div>
       <div className="container mx-auto px-4">
@@ -103,6 +142,15 @@ const MembershipSection = () => {
           <div className="h-px w-24 bg-gold-dark mx-auto mt-4"></div>
           <p className="mt-6 text-white/80 max-w-2xl mx-auto">
             Select the perfect membership tier to match your travel lifestyle and unlock a world of exclusive privileges.
+          </p>
+        </div>
+
+        <div className="text-center mb-12">
+          <h3 className="text-2xl text-white font-display">
+            <span className="text-gold">Membership Pricing</span> & Benefits
+          </h3>
+          <p className="mt-3 text-white/70 max-w-2xl mx-auto">
+            Compare our membership tiers to find the perfect fit for your travel needs
           </p>
         </div>
 
@@ -136,6 +184,12 @@ const MembershipSection = () => {
                 <span className="text-white/60">/{plan.billingPeriod}</span>
               </div>
 
+              {plan.name === 'Silver' && (
+                <div className="bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9] text-sm px-3 py-1.5 rounded-md inline-flex items-center mb-4 w-fit">
+                  <span className="font-medium">Silver Member</span>
+                </div>
+              )}
+
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start">
@@ -148,6 +202,7 @@ const MembershipSection = () => {
               <Button 
                 className="mt-auto"
                 variant={plan.buttonVariant as any}
+                onClick={() => handleJoinClick(plan.name)}
               >
                 Join {plan.name}
               </Button>
@@ -155,6 +210,67 @@ const MembershipSection = () => {
           ))}
         </div>
       </div>
+
+      {/* Join Membership Dialog */}
+      <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
+        <DialogContent className="bg-black border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-gold">Join {selectedPlan} Membership</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Complete the form below to apply for {selectedPlan} membership.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-white">Full Name</Label>
+              <Input 
+                id="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                className="bg-white/5 border-white/20 text-white"
+                placeholder="Enter your full name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white">Email Address</Label>
+              <Input 
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="bg-white/5 border-white/20 text-white"
+                placeholder="Enter your email address"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-white">Phone Number</Label>
+              <Input 
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                className="bg-white/5 border-white/20 text-white"
+                placeholder="Enter your phone number"
+              />
+            </div>
+            
+            <DialogFooter className="pt-4">
+              <Button variant="outline" type="button" onClick={() => setJoinDialogOpen(false)} className="border-white/20 text-white hover:bg-white/10">
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-gold hover:bg-gold-dark text-black">
+                Submit Application
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
