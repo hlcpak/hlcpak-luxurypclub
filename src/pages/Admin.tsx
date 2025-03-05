@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -47,6 +48,8 @@ const Admin = () => {
   const [editingDeal, setEditingDeal] = useState<HotelDeal | null>(null);
   const [editingPackage, setEditingPackage] = useState<TourPackage | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingContent, setEditingContent] = useState<WebsiteContent | null>(null);
+  const [editingSetting, setEditingSetting] = useState<SiteSetting | null>(null);
   const [showAddDealForm, setShowAddDealForm] = useState(false);
   const [showAddPackageForm, setShowAddPackageForm] = useState(false);
   const [newDeal, setNewDeal] = useState<Omit<HotelDeal, 'id' | 'created_at'>>({
