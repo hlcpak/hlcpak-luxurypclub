@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -888,4 +889,302 @@ const Admin = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-white/70 mb-
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Regular Price ($) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={newPackage.regular_price}
+                      onChange={(e) => setNewPackage({...newPackage, regular_price: parseInt(e.target.value)})}
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      placeholder="e.g. 3500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Member Price ($) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={newPackage.member_price}
+                      onChange={(e) => setNewPackage({...newPackage, member_price: parseInt(e.target.value)})}
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      placeholder="e.g. 2800"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Duration <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newPackage.duration}
+                      onChange={(e) => setNewPackage({...newPackage, duration: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
+                      placeholder="e.g. 10 days"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-white/70 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={newPackage.description || ''}
+                      onChange={(e) => setNewPackage({...newPackage, description: e.target.value})}
+                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white h-24"
+                      placeholder="Describe the tour package"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex justify-end">
+                  <button 
+                    onClick={() => setShowAddPackageForm(false)}
+                    className="px-4 py-2 border border-white/20 text-white/70 rounded-md hover:bg-white/10 mr-2"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleSubmitNewPackage}
+                    className="px-4 py-2 bg-gold-dark text-white rounded-md hover:bg-gold hover:text-black"
+                  >
+                    Save Package
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {loadingPackages ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Package Name</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Location</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Original Price</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Member Price</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tourPackages.map((pkg) => (
+                      <tr key={pkg.id} className="border-b border-white/10 hover:bg-white/10">
+                        <td className="py-3 px-4 text-white">
+                          {editingPackage?.id === pkg.id ? (
+                            <input
+                              type="text"
+                              value={editingPackage.name}
+                              onChange={(e) => setEditingPackage({...editingPackage, name: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            pkg.name
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingPackage?.id === pkg.id ? (
+                            <input
+                              type="text"
+                              value={editingPackage.location}
+                              onChange={(e) => setEditingPackage({...editingPackage, location: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            pkg.location
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingPackage?.id === pkg.id ? (
+                            <input
+                              type="number"
+                              value={editingPackage.regular_price}
+                              onChange={(e) => setEditingPackage({...editingPackage, regular_price: parseInt(e.target.value)})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            `$${pkg.regular_price}`
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-gold">
+                          {editingPackage?.id === pkg.id ? (
+                            <input
+                              type="number"
+                              value={editingPackage.member_price}
+                              onChange={(e) => setEditingPackage({...editingPackage, member_price: parseInt(e.target.value)})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            `$${pkg.member_price}`
+                          )}
+                        </td>
+                        <td className="py-3 px-4 flex justify-center space-x-2">
+                          {editingPackage?.id === pkg.id ? (
+                            <button 
+                              onClick={handleUpdateTourPackage}
+                              className="p-1 text-gold hover:text-white transition-colors"
+                            >
+                              <Save size={16} />
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleEditTourPackage(pkg)}
+                              className="p-1 text-white/70 hover:text-gold transition-colors"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteTourPackage(pkg.id)}
+                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="members" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-display font-semibold text-white">Manage Members</h2>
+              <button 
+                onClick={handleAddUser}
+                className="flex items-center bg-gold-dark hover:bg-gold text-white hover:text-black px-3 py-2 rounded-md transition-colors"
+              >
+                <UserPlus size={16} className="mr-2" />
+                Add New Member
+              </button>
+            </div>
+            
+            {loadingUsers ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Name</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Email</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Membership Tier</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Points</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className="border-b border-white/10 hover:bg-white/10">
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="text"
+                              value={editingUser.name}
+                              onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.name
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="email"
+                              value={editingUser.email}
+                              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.email
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingUser?.id === user.id ? (
+                            <select
+                              value={editingUser.membership_tier}
+                              onChange={(e) => setEditingUser({...editingUser, membership_tier: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            >
+                              <option value="Silver">Silver</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Platinum">Platinum</option>
+                            </select>
+                          ) : (
+                            user.membership_tier
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-gold">
+                          {editingUser?.id === user.id ? (
+                            <input
+                              type="number"
+                              value={editingUser.points}
+                              onChange={(e) => setEditingUser({...editingUser, points: parseInt(e.target.value)})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            user.points.toLocaleString()
+                          )}
+                        </td>
+                        <td className="py-3 px-4 flex justify-center space-x-2">
+                          {editingUser?.id === user.id ? (
+                            <button 
+                              onClick={handleUpdateUser}
+                              className="p-1 text-gold hover:text-white transition-colors"
+                            >
+                              <Save size={16} />
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleEditUser(user)}
+                              className="p-1 text-white/70 hover:text-gold transition-colors"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="content" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+            <div className="p-8 text-center text-white/60">
+              <h3 className="text-lg font-medium text-white mb-2">Website Content Management</h3>
+              <p>This feature is coming soon.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="settings" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+            <div className="p-8 text-center text-white/60">
+              <h3 className="text-lg font-medium text-white mb-2">Admin Settings</h3>
+              <p>This feature is coming soon.</p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default Admin;
