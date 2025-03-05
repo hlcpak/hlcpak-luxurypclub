@@ -1,11 +1,11 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 
 const MembershipSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const [hoveredTier, setHoveredTier] = useState<string | null>(null);
+  const planRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -17,143 +17,140 @@ const MembershipSection = () => {
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
-    
-    itemsRef.current.forEach((item) => {
-      if (item) observer.observe(item);
+
+    planRefs.current.forEach((plan) => {
+      if (plan) observer.observe(plan);
     });
 
     return () => {
       if (sectionRef.current) observer.unobserve(sectionRef.current);
-      
-      itemsRef.current.forEach((item) => {
-        if (item) observer.unobserve(item);
+      planRefs.current.forEach((plan) => {
+        if (plan) observer.unobserve(plan);
       });
     };
   }, []);
 
-  const membershipTiers = [
+  const membershipPlans = [
     {
-      id: 'silver',
       name: 'Silver',
-      price: 35000,
-      currency: 'Rs.',
-      description: 'Entry-level access to exclusive hotel rates and basic benefits.',
+      description: 'Perfect for the occasional traveler',
+      price: 499,
+      billingPeriod: 'year',
       features: [
-        'Member-only rates (up to 15% discount)',
-        'Priority booking assistance',
-        'Basic loyalty points (1x)',
-        'Room upgrades (when available)',
-        'Welcome amenity at check-in',
+        'Access to exclusive hotel deals',
+        'Priority booking',
+        'Silver tier room upgrades when available',
+        'Dedicated travel concierge service',
+        '24/7 customer support',
       ],
-      recommended: false,
-      delay: 'delay-100'
+      color: 'bg-slate-100 border-slate-200',
+      textColor: 'text-black',
+      buttonVariant: 'outline',
     },
     {
-      id: 'gold',
       name: 'Gold',
-      price: 70000,
-      currency: 'Rs.',
-      description: 'Enhanced benefits with VIP treatment at partner hotels.',
+      description: 'Our most popular membership',
+      price: 999,
+      billingPeriod: 'year',
       features: [
-        'Member-only rates (up to 25% discount)',
-        'Premium booking assistance',
-        'Enhanced loyalty points (2x)',
+        'All Silver benefits',
         'Guaranteed room upgrades',
-        'Luxury welcome amenities',
-        'Late check-out (up to 4pm)',
-        'Dedicated concierge service',
+        'Late checkout privileges',
+        'Exclusive access to partner lounges',
+        'Complimentary breakfast at select properties',
+        'Annual credit towards any booking',
       ],
-      recommended: true,
-      delay: 'delay-200'
+      color: 'bg-gold/10 border-gold',
+      textColor: 'text-gold',
+      buttonVariant: 'default',
+      featured: true,
     },
     {
-      id: 'platinum',
       name: 'Platinum',
-      price: 150000,
-      currency: 'Rs.',
-      description: 'Ultimate luxury experience with exclusive access to rare privileges.',
+      description: 'For the elite luxury traveler',
+      price: 2499,
+      billingPeriod: 'year',
       features: [
-        'Member-only rates (up to 30% discount)',
-        'VIP booking assistance',
-        'Premium loyalty points (3x)',
-        'Suite upgrades',
-        'Exclusive welcome gifts',
-        'Guaranteed late check-out',
-        'Private airport transfers',
-        'Personalized trip planning',
-        'Access to VIP events worldwide',
+        'All Gold benefits',
+        'Complimentary airport transfers',
+        'Personalized travel planning',
+        'VIP meet and greet at select destinations',
+        'Exclusive events and experiences',
+        'Generous annual travel credit',
+        'Complimentary spa treatments at partner hotels',
       ],
-      recommended: false,
-      delay: 'delay-300'
-    }
+      color: 'bg-slate-900 border-slate-800',
+      textColor: 'text-white',
+      buttonVariant: 'outline',
+    },
   ];
 
   return (
-    <section 
-      ref={sectionRef} 
-      className="py-24 bg-gradient-to-b from-black/90 to-black/95 relative"
+    <section
+      ref={sectionRef}
+      id="membership"
+      className="relative py-24 bg-black"
     >
+      <div className="absolute inset-0 bg-[url('/img/pattern-dark.svg')] opacity-5"></div>
       <div className="container mx-auto px-4">
         <div className="text-center mb-16 opacity-0 translate-y-10 transition-all duration-1000">
           <span className="text-xs uppercase tracking-widest text-gold-dark">Membership Options</span>
-          <h2 className="text-3xl md:text-4xl mt-2 text-white">Choose Your <span className="text-gold">Tier</span></h2>
+          <h2 className="text-3xl md:text-4xl mt-2 text-white">Choose Your <span className="text-gold">Level</span></h2>
           <div className="h-px w-24 bg-gold-dark mx-auto mt-4"></div>
           <p className="mt-6 text-white/80 max-w-2xl mx-auto">
-            Select the membership level that best suits your travel needs and unlock a world of exclusive privileges.
+            Select the perfect membership tier to match your travel lifestyle and unlock a world of exclusive privileges.
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {membershipTiers.map((tier, index) => (
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+          {membershipPlans.map((plan, index) => (
             <div
-              key={tier.id}
-              ref={(el) => (itemsRef.current[index] = el)}
-              className={`relative bg-white/5 backdrop-blur-sm border rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${tier.delay} ${
-                hoveredTier === tier.id ? 'border-gold shadow-gold scale-[1.02]' : 
-                tier.recommended ? 'border-gold/50' : 'border-white/10'
-              }`}
-              onMouseEnter={() => setHoveredTier(tier.id)}
-              onMouseLeave={() => setHoveredTier(null)}
+              key={plan.name}
+              ref={(el) => (planRefs.current[index] = el)}
+              className={`relative rounded-lg overflow-hidden border ${
+                plan.color
+              } p-8 flex flex-col opacity-0 translate-y-10 transition-all duration-700 delay-${
+                index * 100
+              } ${
+                plan.featured ? 'transform md:-translate-y-4' : ''
+              } hover:border-gold/70 hover:shadow-xl transition-all`}
             >
-              {tier.recommended && (
-                <div className="absolute top-0 right-0 left-0 bg-gold text-black text-xs font-medium text-center py-1">
-                  Most Popular
+              {plan.featured && (
+                <div className="absolute top-0 right-0 bg-gold text-black text-xs font-bold px-3 py-1">
+                  MOST POPULAR
                 </div>
               )}
-              
-              <div className={`p-8 ${tier.recommended ? 'pt-12' : ''}`}>
-                <h3 className="text-2xl font-display font-semibold text-white">{tier.name}</h3>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-3xl font-display font-bold text-gold">{tier.currency}{tier.price.toLocaleString()}</span>
-                  <span className="text-white/60 ml-2">/year</span>
-                </div>
-                <p className="mt-4 text-white/70 min-h-[60px]">{tier.description}</p>
-                
-                <div className="mt-6 space-y-3">
-                  {tier.features.map((feature, i) => (
-                    <div key={i} className="flex items-start">
-                      <div className="flex-shrink-0 mr-2">
-                        <Check className="h-5 w-5 text-gold" />
-                      </div>
-                      <span className="text-white/80">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <button 
-                  className={`w-full mt-8 py-3 rounded-md text-center transition-colors ${
-                    tier.recommended 
-                      ? 'bg-gold-dark text-white hover:bg-gold hover:text-black' 
-                      : 'border border-gold-dark text-white hover:bg-gold-dark'
-                  }`}
-                >
-                  {tier.recommended ? 'Join Now' : 'Select Plan'}
-                </button>
+              <div className="mb-6">
+                <h3 className={`text-2xl font-display font-semibold ${plan.textColor}`}>
+                  {plan.name}
+                </h3>
+                <p className="text-white/60 mt-1">{plan.description}</p>
               </div>
+
+              <div className={`${plan.textColor} mb-6`}>
+                <span className="text-3xl font-bold font-display">${plan.price}</span>
+                <span className="text-white/60">/{plan.billingPeriod}</span>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start">
+                    <Check size={18} className="text-gold shrink-0 mt-0.5 mr-2" />
+                    <span className="text-white/80 text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button 
+                className="mt-auto"
+                variant={plan.buttonVariant as any}
+              >
+                Join {plan.name}
+              </Button>
             </div>
           ))}
         </div>

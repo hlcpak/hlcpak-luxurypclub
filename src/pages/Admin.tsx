@@ -1,55 +1,103 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { Pencil, Trash, PlusCircle, Save, LogOut, Eye, Loader2, UserPlus, X, CheckCircle2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogClose 
+} from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, Plus, Edit, Trash, Check, X, Search, ChevronDown } from "lucide-react";
 import { 
   getHotelDeals, 
-  getTourPackages,
-  getUsers,
-  getTransactions,
-  addHotelDeal, 
-  updateHotelDeal, 
-  deleteHotelDeal,
-  addTourPackage,
-  updateTourPackage,
-  deleteTourPackage,
-  addUser,
-  updateUser,
-  deleteUser,
+  getTourPackages, 
+  getTransactions, 
+  getUsers, 
   getWebsiteContent,
   updateWebsiteContent,
   getSystemSettings,
   updateSystemSetting,
+  addHotelDeal, 
+  updateHotelDeal, 
+  deleteHotelDeal, 
+  addTourPackage, 
+  updateTourPackage, 
+  deleteTourPackage,
+  addUser,
+  updateUser,
+  deleteUser,
+  addTransaction,
   HotelDeal,
   TourPackage,
   User,
   Transaction,
   WebsiteContent,
   SiteSetting
-} from '@/lib/supabase';
+} from "@/lib/supabase";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // State for data
+  const [users, setUsers] = useState<User[]>([]);
   const [hotelDeals, setHotelDeals] = useState<HotelDeal[]>([]);
   const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [websiteContent, setWebsiteContent] = useState<WebsiteContent[]>([]);
   const [systemSettings, setSystemSettings] = useState<SiteSetting[]>([]);
-  const [loadingDeals, setLoadingDeals] = useState(false);
-  const [loadingPackages, setLoadingPackages] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [loadingContent, setLoadingContent] = useState(false);
-  const [loadingSettings, setLoadingSettings] = useState(false);
+  
+  // Loading states
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingDeals, setLoadingDeals] = useState(true);
+  const [loadingPackages, setLoadingPackages] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [loadingContent, setLoadingContent] = useState(true);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  
+  // Editing states
   const [editingDeal, setEditingDeal] = useState<HotelDeal | null>(null);
   const [editingPackage, setEditingPackage] = useState<TourPackage | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editingContent, setEditingContent] = useState<WebsiteContent | null>(null);
   const [editingSetting, setEditingSetting] = useState<SiteSetting | null>(null);
+  
+  // Form display states
   const [showAddDealForm, setShowAddDealForm] = useState(false);
   const [showAddPackageForm, setShowAddPackageForm] = useState(false);
   const [newDeal, setNewDeal] = useState<Omit<HotelDeal, 'id' | 'created_at'>>({
@@ -63,6 +111,7 @@ const Admin = () => {
     duration: '',
     description: ''
   });
+  
   const [newPackage, setNewPackage] = useState<Omit<TourPackage, 'id' | 'created_at'>>({
     name: '',
     location: '',
@@ -74,169 +123,154 @@ const Admin = () => {
     duration: '',
     description: ''
   });
-  const navigate = useNavigate();
-
+  
+  const [newUser, setNewUser] = useState<Omit<User, 'id' | 'created_at'>>({
+    name: '',
+    email: '',
+    membership_tier: 'Silver',
+    points: 0
+  });
+  
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ type: 'deal' | 'package' | 'user', id: number | string } | null>(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // Search filters
+  const [dealSearchTerm, setDealSearchTerm] = useState('');
+  const [packageSearchTerm, setPackageSearchTerm] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  
+  // Fetch all data on component mount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const fetchData = async () => {
+      try {
+        // Fetch users
+        setLoadingUsers(true);
+        const userData = await getUsers();
+        setUsers(userData);
+        setLoadingUsers(false);
+        
+        // Fetch hotel deals
+        setLoadingDeals(true);
+        const dealData = await getHotelDeals();
+        setHotelDeals(dealData);
+        setLoadingDeals(false);
+        
+        // Fetch tour packages
+        setLoadingPackages(true);
+        const packageData = await getTourPackages();
+        setTourPackages(packageData);
+        setLoadingPackages(false);
+        
+        // Fetch transactions
+        setLoadingTransactions(true);
+        const transactionData = await getTransactions();
+        setTransactions(transactionData);
+        setLoadingTransactions(false);
+        
+        // Fetch website content
+        setLoadingContent(true);
+        const contentData = await getWebsiteContent();
+        setWebsiteContent(contentData);
+        setLoadingContent(false);
+        
+        // Fetch system settings
+        setLoadingSettings(true);
+        const settingsData = await getSystemSettings();
+        setSystemSettings(settingsData);
+        setLoadingSettings(false);
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load some admin data. Please try refreshing the page.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    fetchData();
   }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchHotelDeals();
-      fetchTourPackages();
-      fetchUsers();
-      fetchTransactions();
-      fetchWebsiteContent();
-      fetchSystemSettings();
-    }
-  }, [isAuthenticated]);
-
-  const fetchHotelDeals = async () => {
+  
+  // Handle editing website content
+  const handleEditContent = (content: WebsiteContent) => {
+    setEditingContent(content);
+  };
+  
+  const handleSaveContent = async () => {
+    if (!editingContent) return;
+    
     try {
-      setLoadingDeals(true);
-      const deals = await getHotelDeals();
-      setHotelDeals(deals);
+      const updatedContent = await updateWebsiteContent(editingContent.id, {
+        title: editingContent.title,
+        content: editingContent.content,
+        active: editingContent.active
+      });
+      
+      if (updatedContent) {
+        setWebsiteContent(prev => 
+          prev.map(item => item.id === updatedContent.id ? updatedContent : item)
+        );
+        
+        toast({
+          title: "Success",
+          description: "Website content updated successfully",
+        });
+        
+        setEditingContent(null);
+      }
     } catch (error) {
-      console.error('Error fetching hotel deals:', error);
+      console.error("Error updating content:", error);
       toast({
         title: "Error",
-        description: "Failed to load hotel deals",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingDeals(false);
-    }
-  };
-
-  const fetchTourPackages = async () => {
-    try {
-      setLoadingPackages(true);
-      const packages = await getTourPackages();
-      setTourPackages(packages);
-    } catch (error) {
-      console.error('Error fetching tour packages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tour packages",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingPackages(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const usersList = await getUsers();
-      setUsers(usersList);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load users",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-  const fetchTransactions = async () => {
-    try {
-      const transactionsList = await getTransactions();
-      setTransactions(transactionsList);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load transactions",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const fetchWebsiteContent = async () => {
-    try {
-      setLoadingContent(true);
-      const content = await getWebsiteContent();
-      setWebsiteContent(content);
-    } catch (error) {
-      console.error('Error fetching website content:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load website content",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingContent(false);
-    }
-  };
-
-  const fetchSystemSettings = async () => {
-    try {
-      setLoadingSettings(true);
-      const settings = await getSystemSettings();
-      setSystemSettings(settings);
-    } catch (error) {
-      console.error('Error fetching system settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load system settings",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingSettings(false);
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username === 'admin' && password === 'Luxury@123') {
-      setIsAuthenticated(true);
-      toast({
-        title: "Login successful",
-        description: "Welcome to the admin dashboard",
-      });
-    } else {
-      toast({
+        description: "Failed to update website content",
         variant: "destructive",
-        title: "Login failed",
-        description: "Invalid username or password",
       });
     }
   };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUsername('');
-    setPassword('');
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
-    });
+  
+  // Handle editing system settings
+  const handleEditSetting = (setting: SiteSetting) => {
+    setEditingSetting(setting);
   };
-
-  const handleAddHotelDeal = async () => {
-    setShowAddDealForm(true);
-  };
-
-  const handleSubmitNewDeal = async () => {
-    if (!newDeal.name || !newDeal.location || !newDeal.image || !newDeal.deal || 
-        !newDeal.duration || newDeal.regular_price <= 0 || newDeal.member_price <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  
+  const handleSaveSetting = async () => {
+    if (!editingSetting) return;
+    
     try {
-      const addedDeal = await addHotelDeal(newDeal);
-      if (addedDeal) {
-        setHotelDeals([...hotelDeals, addedDeal]);
-        setShowAddDealForm(false);
+      const updatedSetting = await updateSystemSetting(
+        editingSetting.id, 
+        editingSetting.setting_value
+      );
+      
+      if (updatedSetting) {
+        setSystemSettings(prev => 
+          prev.map(item => item.id === updatedSetting.id ? updatedSetting : item)
+        );
+        
+        toast({
+          title: "Success",
+          description: "System setting updated successfully",
+        });
+        
+        setEditingSetting(null);
+      }
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update system setting",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle adding a new hotel deal
+  const handleAddDeal = async () => {
+    try {
+      const newDealData = await addHotelDeal(newDeal);
+      if (newDealData) {
+        setHotelDeals(prev => [...prev, newDealData]);
         setNewDeal({
           name: '',
           location: '',
@@ -248,90 +282,90 @@ const Admin = () => {
           duration: '',
           description: ''
         });
+        setShowAddDealForm(false);
         toast({
           title: "Success",
           description: "Hotel deal added successfully",
         });
       }
     } catch (error) {
-      console.error('Error adding hotel deal:', error);
+      console.error("Error adding hotel deal:", error);
       toast({
         title: "Error",
         description: "Failed to add hotel deal",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-
-  const handleEditHotelDeal = (deal: HotelDeal) => {
-    setEditingDeal(deal);
-  };
-
-  const handleUpdateHotelDeal = async () => {
+  
+  // Handle updating a hotel deal
+  const handleUpdateDeal = async () => {
     if (!editingDeal) return;
-
+    
     try {
-      const updatedDeal = await updateHotelDeal(editingDeal.id, editingDeal);
+      const updatedDeal = await updateHotelDeal(editingDeal.id, {
+        name: editingDeal.name,
+        location: editingDeal.location,
+        image: editingDeal.image,
+        rating: editingDeal.rating,
+        deal: editingDeal.deal,
+        regular_price: editingDeal.regular_price,
+        member_price: editingDeal.member_price,
+        duration: editingDeal.duration,
+        description: editingDeal.description
+      });
+      
       if (updatedDeal) {
-        setHotelDeals(hotelDeals.map(d => d.id === updatedDeal.id ? updatedDeal : d));
-        setEditingDeal(null);
+        setHotelDeals(prev => 
+          prev.map(item => item.id === updatedDeal.id ? updatedDeal : item)
+        );
+        
         toast({
           title: "Success",
           description: "Hotel deal updated successfully",
         });
+        
+        setEditingDeal(null);
       }
     } catch (error) {
-      console.error('Error updating hotel deal:', error);
+      console.error("Error updating hotel deal:", error);
       toast({
         title: "Error",
         description: "Failed to update hotel deal",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-
-  const handleDeleteHotelDeal = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this hotel deal?')) {
-      try {
-        const success = await deleteHotelDeal(id);
-        if (success) {
-          setHotelDeals(hotelDeals.filter(d => d.id !== id));
-          toast({
-            title: "Success",
-            description: "Hotel deal deleted successfully",
-          });
-        }
-      } catch (error) {
-        console.error('Error deleting hotel deal:', error);
+  
+  // Handle deleting a hotel deal
+  const handleDeleteDeal = async (id: number) => {
+    try {
+      const success = await deleteHotelDeal(id);
+      if (success) {
+        setHotelDeals(prev => prev.filter(item => item.id !== id));
         toast({
-          title: "Error",
-          description: "Failed to delete hotel deal",
-          variant: "destructive"
+          title: "Success",
+          description: "Hotel deal deleted successfully",
         });
       }
-    }
-  };
-
-  const handleAddTourPackage = async () => {
-    setShowAddPackageForm(true);
-  };
-
-  const handleSubmitNewPackage = async () => {
-    if (!newPackage.name || !newPackage.location || !newPackage.image || !newPackage.deal || 
-        !newPackage.duration || newPackage.regular_price <= 0 || newPackage.member_price <= 0) {
+    } catch (error) {
+      console.error("Error deleting hotel deal:", error);
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to delete hotel deal",
+        variant: "destructive",
       });
-      return;
+    } finally {
+      setShowDeleteConfirm(null);
     }
-
+  };
+  
+  // Handle adding a new tour package
+  const handleAddPackage = async () => {
     try {
-      const addedPackage = await addTourPackage(newPackage);
-      if (addedPackage) {
-        setTourPackages([...tourPackages, addedPackage]);
-        setShowAddPackageForm(false);
+      const newPackageData = await addTourPackage(newPackage);
+      if (newPackageData) {
+        setTourPackages(prev => [...prev, newPackageData]);
         setNewPackage({
           name: '',
           location: '',
@@ -343,1133 +377,547 @@ const Admin = () => {
           duration: '',
           description: ''
         });
+        setShowAddPackageForm(false);
         toast({
           title: "Success",
           description: "Tour package added successfully",
         });
       }
     } catch (error) {
-      console.error('Error adding tour package:', error);
+      console.error("Error adding tour package:", error);
       toast({
         title: "Error",
         description: "Failed to add tour package",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-
-  const handleEditTourPackage = (pkg: TourPackage) => {
-    setEditingPackage(pkg);
-  };
-
-  const handleUpdateTourPackage = async () => {
+  
+  // Handle updating a tour package
+  const handleUpdatePackage = async () => {
     if (!editingPackage) return;
-
+    
     try {
-      const updatedPackage = await updateTourPackage(editingPackage.id, editingPackage);
+      const updatedPackage = await updateTourPackage(editingPackage.id, {
+        name: editingPackage.name,
+        location: editingPackage.location,
+        image: editingPackage.image,
+        rating: editingPackage.rating,
+        deal: editingPackage.deal,
+        regular_price: editingPackage.regular_price,
+        member_price: editingPackage.member_price,
+        duration: editingPackage.duration,
+        description: editingPackage.description
+      });
+      
       if (updatedPackage) {
-        setTourPackages(tourPackages.map(p => p.id === updatedPackage.id ? updatedPackage : p));
-        setEditingPackage(null);
+        setTourPackages(prev => 
+          prev.map(item => item.id === updatedPackage.id ? updatedPackage : item)
+        );
+        
         toast({
           title: "Success",
           description: "Tour package updated successfully",
         });
+        
+        setEditingPackage(null);
       }
     } catch (error) {
-      console.error('Error updating tour package:', error);
+      console.error("Error updating tour package:", error);
       toast({
         title: "Error",
         description: "Failed to update tour package",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
-
-  const handleDeleteTourPackage = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this tour package?')) {
-      try {
-        const success = await deleteTourPackage(id);
-        if (success) {
-          setTourPackages(tourPackages.filter(p => p.id !== id));
-          toast({
-            title: "Success",
-            description: "Tour package deleted successfully",
-          });
-        }
-      } catch (error) {
-        console.error('Error deleting tour package:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete tour package",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleAddUser = async () => {
-    const newUser: Omit<User, 'id' | 'created_at'> = {
-      name: 'New Member',
-      email: 'member@example.com',
-      membership_tier: 'Silver',
-      points: 0
-    };
-
+  
+  // Handle deleting a tour package
+  const handleDeletePackage = async (id: number) => {
     try {
-      const addedUser = await addUser(newUser);
-      if (addedUser) {
-        setUsers([addedUser, ...users]);
+      const success = await deleteTourPackage(id);
+      if (success) {
+        setTourPackages(prev => prev.filter(item => item.id !== id));
         toast({
           title: "Success",
-          description: "Member added successfully",
+          description: "Tour package deleted successfully",
         });
       }
     } catch (error) {
-      console.error('Error adding member:', error);
+      console.error("Error deleting tour package:", error);
       toast({
         title: "Error",
-        description: "Failed to add member",
-        variant: "destructive"
+        description: "Failed to delete tour package",
+        variant: "destructive",
+      });
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+  
+  // Handle adding a new user
+  const handleAddUser = async () => {
+    try {
+      const newUserData = await addUser(newUser);
+      if (newUserData) {
+        setUsers(prev => [...prev, newUserData]);
+        setNewUser({
+          name: '',
+          email: '',
+          membership_tier: 'Silver',
+          points: 0
+        });
+        setShowAddUserForm(false);
+        toast({
+          title: "Success",
+          description: "User added successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add user",
+        variant: "destructive",
       });
     }
   };
-
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-  };
-
+  
+  // Handle updating a user
   const handleUpdateUser = async () => {
     if (!editingUser) return;
-
+    
     try {
-      const updatedUser = await updateUser(editingUser.id, editingUser);
-      if (updatedUser) {
-        setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
-        setEditingUser(null);
-        toast({
-          title: "Success",
-          description: "Member updated successfully",
-        });
-      }
-    } catch (error) {
-      console.error('Error updating member:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update member",
-        variant: "destructive"
+      const updatedUser = await updateUser(editingUser.id, {
+        name: editingUser.name,
+        email: editingUser.email,
+        membership_tier: editingUser.membership_tier,
+        points: editingUser.points
       });
-    }
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this member?')) {
-      try {
-        const success = await deleteUser(id);
-        if (success) {
-          setUsers(users.filter(u => u.id !== id));
-          toast({
-            title: "Success",
-            description: "Member deleted successfully",
-          });
-        }
-      } catch (error) {
-        console.error('Error deleting member:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete member",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleEditContent = (content: WebsiteContent) => {
-    setEditingContent(content);
-  };
-
-  const handleUpdateContent = async () => {
-    if (!editingContent) return;
-
-    try {
-      const updatedContent = await updateWebsiteContent(editingContent.id, editingContent);
-      if (updatedContent) {
-        setWebsiteContent(websiteContent.map(c => c.id === updatedContent.id ? updatedContent : c));
-        setEditingContent(null);
-        toast({
-          title: "Success",
-          description: "Content updated successfully",
-        });
-      }
-    } catch (error) {
-      console.error('Error updating content:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update content",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEditSetting = (setting: SiteSetting) => {
-    setEditingSetting(setting);
-  };
-
-  const handleUpdateSetting = async () => {
-    if (!editingSetting) return;
-
-    try {
-      const updatedSetting = await updateSystemSetting(
-        editingSetting.id, 
-        editingSetting.setting_value
-      );
       
-      if (updatedSetting) {
-        setSystemSettings(systemSettings.map(s => s.id === updatedSetting.id ? updatedSetting : s));
-        setEditingSetting(null);
+      if (updatedUser) {
+        setUsers(prev => 
+          prev.map(item => item.id === updatedUser.id ? updatedUser : item)
+        );
+        
         toast({
           title: "Success",
-          description: "Setting updated successfully",
+          description: "User updated successfully",
         });
+        
+        setEditingUser(null);
       }
     } catch (error) {
-      console.error('Error updating setting:', error);
+      console.error("Error updating user:", error);
       toast({
         title: "Error",
-        description: "Failed to update setting",
-        variant: "destructive"
+        description: "Failed to update user",
+        variant: "destructive",
       });
     }
   };
+  
+  // Handle deleting a user
+  const handleDeleteUser = async (id: string) => {
+    try {
+      const success = await deleteUser(id);
+      if (success) {
+        setUsers(prev => prev.filter(item => item.id !== id));
+        toast({
+          title: "Success",
+          description: "User deleted successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-display font-bold text-gold">Admin Login</h1>
-            <p className="text-white/70 mt-2">Sign in to access the admin dashboard</p>
+  // Filter hotel deals based on search term
+  const filteredHotelDeals = hotelDeals.filter(deal => 
+    deal.name.toLowerCase().includes(dealSearchTerm.toLowerCase()) ||
+    deal.location.toLowerCase().includes(dealSearchTerm.toLowerCase())
+  );
+  
+  // Filter tour packages based on search term
+  const filteredTourPackages = tourPackages.filter(pkg => 
+    pkg.name.toLowerCase().includes(packageSearchTerm.toLowerCase()) ||
+    pkg.location.toLowerCase().includes(packageSearchTerm.toLowerCase())
+  );
+  
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
+  
+  // Chart data for dashboard
+  const membershipData = [
+    { name: 'Silver', value: users.filter(u => u.membership_tier === 'Silver').length },
+    { name: 'Gold', value: users.filter(u => u.membership_tier === 'Gold').length },
+    { name: 'Platinum', value: users.filter(u => u.membership_tier === 'Platinum').length },
+  ];
+  
+  const transactionData = [
+    { name: 'Silver', amount: transactions.filter(t => t.membership_type === 'Silver').reduce((acc, t) => acc + t.amount, 0) },
+    { name: 'Gold', amount: transactions.filter(t => t.membership_type === 'Gold').reduce((acc, t) => acc + t.amount, 0) },
+    { name: 'Platinum', amount: transactions.filter(t => t.membership_type === 'Platinum').reduce((acc, t) => acc + t.amount, 0) },
+  ];
+  
+  const COLORS = ['#C0C0C0', '#FFD700', '#E5E4E2'];
+  
+  // Render add deal form
+  const renderAddDealForm = () => (
+    <Dialog open={showAddDealForm} onOpenChange={setShowAddDealForm}>
+      <DialogContent className="bg-black border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle>Add New Hotel Deal</DialogTitle>
+          <DialogDescription>
+            Fill in the details for the new hotel deal
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input 
+              id="name" 
+              value={newDeal.name} 
+              onChange={(e) => setNewDeal({...newDeal, name: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
           </div>
-          
-          <form onSubmit={handleLogin} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8">
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-white mb-1">Username</label>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gold"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-white mb-1">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-gold"
-                  required
-                />
-              </div>
-              
-              <button
-                type="submit"
-                className="w-full bg-gold hover:bg-gold-dark text-black font-medium py-2 rounded-md transition-colors mt-2"
-              >
-                Sign In
-              </button>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => navigate('/')}
-                className="text-gold-dark hover:text-gold text-sm"
-              >
-                Return to website
-              </button>
-            </div>
-          </form>
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Input 
+              id="location" 
+              value={newDeal.location} 
+              onChange={(e) => setNewDeal({...newDeal, location: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image">Image URL</Label>
+            <Input 
+              id="image" 
+              value={newDeal.image} 
+              onChange={(e) => setNewDeal({...newDeal, image: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rating">Rating</Label>
+            <Select onValueChange={(value) => setNewDeal({...newDeal, rating: parseInt(value)})}>
+              <SelectTrigger className="bg-black/50 border-white/20">
+                <SelectValue placeholder="Select Rating" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-white/10 text-white">
+                {[1, 2, 3, 4, 5].map(rating => (
+                  <SelectItem key={rating} value={rating.toString()}>{rating} Stars</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deal">Deal</Label>
+            <Input 
+              id="deal" 
+              value={newDeal.deal} 
+              onChange={(e) => setNewDeal({...newDeal, deal: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="regular_price">Regular Price</Label>
+            <Input 
+              type="number"
+              id="regular_price" 
+              value={newDeal.regular_price} 
+              onChange={(e) => setNewDeal({...newDeal, regular_price: parseFloat(e.target.value)})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="member_price">Member Price</Label>
+            <Input 
+              type="number"
+              id="member_price" 
+              value={newDeal.member_price} 
+              onChange={(e) => setNewDeal({...newDeal, member_price: parseFloat(e.target.value)})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duration</Label>
+            <Input 
+              id="duration" 
+              value={newDeal.duration} 
+              onChange={(e) => setNewDeal({...newDeal, duration: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description" 
+              rows={3}
+              value={newDeal.description} 
+              onChange={(e) => setNewDeal({...newDeal, description: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
         </div>
-      </div>
-    );
-  }
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowAddDealForm(false)}>Cancel</Button>
+          <Button onClick={handleAddDeal}>Add Deal</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+  
+  // Render add package form
+  const renderAddPackageForm = () => (
+    <Dialog open={showAddPackageForm} onOpenChange={setShowAddPackageForm}>
+      <DialogContent className="bg-black border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle>Add New Tour Package</DialogTitle>
+          <DialogDescription>
+            Fill in the details for the new tour package
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input 
+              id="name" 
+              value={newPackage.name} 
+              onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Input 
+              id="location" 
+              value={newPackage.location} 
+              onChange={(e) => setNewPackage({...newPackage, location: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image">Image URL</Label>
+            <Input 
+              id="image" 
+              value={newPackage.image} 
+              onChange={(e) => setNewPackage({...newPackage, image: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rating">Rating</Label>
+            <Select onValueChange={(value) => setNewPackage({...newPackage, rating: parseInt(value)})}>
+              <SelectTrigger className="bg-black/50 border-white/20">
+                <SelectValue placeholder="Select Rating" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-white/10 text-white">
+                {[1, 2, 3, 4, 5].map(rating => (
+                  <SelectItem key={rating} value={rating.toString()}>{rating} Stars</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="deal">Deal</Label>
+            <Input 
+              id="deal" 
+              value={newPackage.deal} 
+              onChange={(e) => setNewPackage({...newPackage, deal: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="regular_price">Regular Price</Label>
+            <Input 
+              type="number"
+              id="regular_price" 
+              value={newPackage.regular_price} 
+              onChange={(e) => setNewPackage({...newPackage, regular_price: parseFloat(e.target.value)})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="member_price">Member Price</Label>
+            <Input 
+              type="number"
+              id="member_price" 
+              value={newPackage.member_price} 
+              onChange={(e) => setNewPackage({...newPackage, member_price: parseFloat(e.target.value)})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duration</Label>
+            <Input 
+              id="duration" 
+              value={newPackage.duration} 
+              onChange={(e) => setNewPackage({...newPackage, duration: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description" 
+              rows={3}
+              value={newPackage.description} 
+              onChange={(e) => setNewPackage({...newPackage, description: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowAddPackageForm(false)}>Cancel</Button>
+          <Button onClick={handleAddPackage}>Add Package</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+  
+  // Render add user form
+  const renderAddUserForm = () => (
+    <Dialog open={showAddUserForm} onOpenChange={setShowAddUserForm}>
+      <DialogContent className="bg-black border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle>Add New User</DialogTitle>
+          <DialogDescription>
+            Fill in the details for the new user
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input 
+              id="name" 
+              value={newUser.name} 
+              onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email" 
+              value={newUser.email} 
+              onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="membership_tier">Membership Tier</Label>
+            <Select onValueChange={(value) => setNewUser({...newUser, membership_tier: value as 'Silver' | 'Gold' | 'Platinum'})}>
+              <SelectTrigger className="bg-black/50 border-white/20">
+                <SelectValue placeholder="Select Tier" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-white/10 text-white">
+                <SelectItem value="Silver">Silver</SelectItem>
+                <SelectItem value="Gold">Gold</SelectItem>
+                <SelectItem value="Platinum">Platinum</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="points">Points</Label>
+            <Input 
+              type="number"
+              id="points" 
+              value={newUser.points} 
+              onChange={(e) => setNewUser({...newUser, points: parseInt(e.target.value)})}
+              className="bg-black/50 border-white/20"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowAddUserForm(false)}>Cancel</Button>
+          <Button onClick={handleAddUser}>Add User</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="bg-white/5 backdrop-blur-sm border-b border-white/10 p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-display font-bold text-gold">Admin Dashboard</h1>
-          
+    <div className="min-h-screen bg-black text-white">
+      <header className="bg-black border-b border-white/10 py-4 px-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gold">Luxury Privilege Club Admin</h1>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center text-white/80 hover:text-gold transition-colors"
-            >
-              <Eye size={16} className="mr-1" />
-              View Site
-            </button>
-            
-            <button
-              onClick={handleLogout}
-              className="flex items-center text-white/80 hover:text-gold transition-colors"
-            >
-              <LogOut size={16} className="mr-1" />
-              Logout
-            </button>
+            <span>Admin User</span>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>AD</AvatarFallback>
+            </Avatar>
           </div>
         </div>
-      </div>
+      </header>
       
-      <div className="container mx-auto p-4 md:p-6">
-        <Tabs defaultValue="deals">
-          <TabsList className="mb-8 bg-white/5 border border-white/10">
-            <TabsTrigger value="deals">Hotel Deals</TabsTrigger>
-            <TabsTrigger value="packages">Tour Packages</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="content">Website Content</TabsTrigger>
+      <div className="container mx-auto py-8 px-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-8 bg-black border border-white/10">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="hotel-deals">Hotel Deals</TabsTrigger>
+            <TabsTrigger value="tour-packages">Tour Packages</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="website-content">Website Content</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="deals" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-display font-semibold text-white">Manage Hotel Deals</h2>
-              <button 
-                onClick={handleAddHotelDeal}
-                className="flex items-center bg-gold-dark hover:bg-gold text-white hover:text-black px-3 py-2 rounded-md transition-colors"
-              >
-                <PlusCircle size={16} className="mr-2" />
-                Add New Deal
-              </button>
-            </div>
-            
-            {showAddDealForm && (
-              <div className="mb-8 bg-white/10 p-6 rounded-lg border border-white/20">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-white">Add New Hotel Deal</h3>
-                  <button 
-                    onClick={() => setShowAddDealForm(false)}
-                    className="text-white/70 hover:text-white"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Hotel Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newDeal.name}
-                      onChange={(e) => setNewDeal({...newDeal, name: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. Grand Plaza Resort"
-                    />
-                  </div>
+          {/* Dashboard Tab Content */}
+          <TabsContent value="dashboard">
+            <Card className="bg-black border-white/10">
+              <CardHeader>
+                <CardTitle className="text-gold">Dashboard Overview</CardTitle>
+                <CardDescription>Summary of key metrics and recent activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Total Users */}
+                  <Card className="bg-black border-white/10">
+                    <CardHeader>
+                      <CardTitle>Total Users</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingUsers ? (
+                        <Loader2 className="animate-spin text-gold" />
+                      ) : (
+                        <div className="text-3xl font-bold">{users.length}</div>
+                      )}
+                    </CardContent>
+                  </Card>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Location <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newDeal.location}
-                      onChange={(e) => setNewDeal({...newDeal, location: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. Maldives"
-                    />
-                  </div>
+                  {/* Total Hotel Deals */}
+                  <Card className="bg-black border-white/10">
+                    <CardHeader>
+                      <CardTitle>Total Hotel Deals</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingDeals ? (
+                        <Loader2 className="animate-spin text-gold" />
+                      ) : (
+                        <div className="text-3xl font-bold">{hotelDeals.length}</div>
+                      )}
+                    </CardContent>
+                  </Card>
                   
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Image URL <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newDeal.image}
-                      onChange={(e) => setNewDeal({...newDeal, image: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Rating <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={newDeal.rating}
-                      onChange={(e) => setNewDeal({...newDeal, rating: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                    >
-                      <option value="1">1 Star</option>
-                      <option value="2">2 Stars</option>
-                      <option value="3">3 Stars</option>
-                      <option value="4">4 Stars</option>
-                      <option value="5">5 Stars</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Deal Tag <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newDeal.deal}
-                      onChange={(e) => setNewDeal({...newDeal, deal: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. Save 30% + Free Breakfast"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Regular Price ($) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newDeal.regular_price}
-                      onChange={(e) => setNewDeal({...newDeal, regular_price: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 1200"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Member Price ($) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newDeal.member_price}
-                      onChange={(e) => setNewDeal({...newDeal, member_price: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 850"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Duration <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newDeal.duration}
-                      onChange={(e) => setNewDeal({...newDeal, duration: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 3 nights"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={newDeal.description || ''}
-                      onChange={(e) => setNewDeal({...newDeal, description: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white h-24"
-                      placeholder="Describe the hotel deal"
-                    />
-                  </div>
-                </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <button 
-                    onClick={() => setShowAddDealForm(false)}
-                    className="px-4 py-2 border border-white/20 text-white/70 rounded-md hover:bg-white/10 mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleSubmitNewDeal}
-                    className="px-4 py-2 bg-gold-dark text-white rounded-md hover:bg-gold hover:text-black"
-                  >
-                    Save Deal
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            {loadingDeals ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Hotel Name</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Location</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Original Price</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Member Price</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {hotelDeals.map((deal) => (
-                      <tr key={deal.id} className="border-b border-white/10 hover:bg-white/10">
-                        <td className="py-3 px-4 text-white">
-                          {editingDeal?.id === deal.id ? (
-                            <input
-                              type="text"
-                              value={editingDeal.name}
-                              onChange={(e) => setEditingDeal({...editingDeal, name: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            deal.name
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingDeal?.id === deal.id ? (
-                            <input
-                              type="text"
-                              value={editingDeal.location}
-                              onChange={(e) => setEditingDeal({...editingDeal, location: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            deal.location
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingDeal?.id === deal.id ? (
-                            <input
-                              type="number"
-                              value={editingDeal.regular_price}
-                              onChange={(e) => setEditingDeal({...editingDeal, regular_price: parseInt(e.target.value)})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            `$${deal.regular_price}`
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-gold">
-                          {editingDeal?.id === deal.id ? (
-                            <input
-                              type="number"
-                              value={editingDeal.member_price}
-                              onChange={(e) => setEditingDeal({...editingDeal, member_price: parseInt(e.target.value)})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            `$${deal.member_price}`
-                          )}
-                        </td>
-                        <td className="py-3 px-4 flex justify-center space-x-2">
-                          {editingDeal?.id === deal.id ? (
-                            <button 
-                              onClick={handleUpdateHotelDeal}
-                              className="p-1 text-gold hover:text-white transition-colors"
-                            >
-                              <Save size={16} />
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handleEditHotelDeal(deal)}
-                              className="p-1 text-white/70 hover:text-gold transition-colors"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => handleDeleteHotelDeal(deal.id)}
-                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="packages" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-display font-semibold text-white">Manage Tour Packages</h2>
-              <button 
-                onClick={handleAddTourPackage}
-                className="flex items-center bg-gold-dark hover:bg-gold text-white hover:text-black px-3 py-2 rounded-md transition-colors"
-              >
-                <PlusCircle size={16} className="mr-2" />
-                Add New Package
-              </button>
-            </div>
-
-            {showAddPackageForm && (
-              <div className="mb-8 bg-white/10 p-6 rounded-lg border border-white/20">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-white">Add New Tour Package</h3>
-                  <button 
-                    onClick={() => setShowAddPackageForm(false)}
-                    className="text-white/70 hover:text-white"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Package Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newPackage.name}
-                      onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. European Elegance Tour"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Location <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newPackage.location}
-                      onChange={(e) => setNewPackage({...newPackage, location: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. France, Italy, Switzerland"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Image URL <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newPackage.image}
-                      onChange={(e) => setNewPackage({...newPackage, image: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Rating <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={newPackage.rating}
-                      onChange={(e) => setNewPackage({...newPackage, rating: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                    >
-                      <option value="1">1 Star</option>
-                      <option value="2">2 Stars</option>
-                      <option value="3">3 Stars</option>
-                      <option value="4">4 Stars</option>
-                      <option value="5">5 Stars</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Deal Tag <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newPackage.deal}
-                      onChange={(e) => setNewPackage({...newPackage, deal: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. Early Bird Discount"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Regular Price ($) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newPackage.regular_price}
-                      onChange={(e) => setNewPackage({...newPackage, regular_price: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 3500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Member Price ($) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newPackage.member_price}
-                      onChange={(e) => setNewPackage({...newPackage, member_price: parseInt(e.target.value)})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 2800"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Duration <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newPackage.duration}
-                      onChange={(e) => setNewPackage({...newPackage, duration: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white"
-                      placeholder="e.g. 10 days"
-                    />
-                  </div>
-                  
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-white/70 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={newPackage.description || ''}
-                      onChange={(e) => setNewPackage({...newPackage, description: e.target.value})}
-                      className="w-full bg-black/50 border border-white/20 rounded-md px-4 py-2 text-white h-24"
-                      placeholder="Describe the tour package"
-                    />
-                  </div>
-                </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <button 
-                    onClick={() => setShowAddPackageForm(false)}
-                    className="px-4 py-2 border border-white/20 text-white/70 rounded-md hover:bg-white/10 mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleSubmitNewPackage}
-                    className="px-4 py-2 bg-gold-dark text-white rounded-md hover:bg-gold hover:text-black"
-                  >
-                    Save Package
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            {loadingPackages ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Package Name</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Location</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Original Price</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Member Price</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tourPackages.map((pkg) => (
-                      <tr key={pkg.id} className="border-b border-white/10 hover:bg-white/10">
-                        <td className="py-3 px-4 text-white">
-                          {editingPackage?.id === pkg.id ? (
-                            <input
-                              type="text"
-                              value={editingPackage.name}
-                              onChange={(e) => setEditingPackage({...editingPackage, name: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            pkg.name
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingPackage?.id === pkg.id ? (
-                            <input
-                              type="text"
-                              value={editingPackage.location}
-                              onChange={(e) => setEditingPackage({...editingPackage, location: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            pkg.location
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingPackage?.id === pkg.id ? (
-                            <input
-                              type="number"
-                              value={editingPackage.regular_price}
-                              onChange={(e) => setEditingPackage({...editingPackage, regular_price: parseInt(e.target.value)})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            `$${pkg.regular_price}`
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-gold">
-                          {editingPackage?.id === pkg.id ? (
-                            <input
-                              type="number"
-                              value={editingPackage.member_price}
-                              onChange={(e) => setEditingPackage({...editingPackage, member_price: parseInt(e.target.value)})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            `$${pkg.member_price}`
-                          )}
-                        </td>
-                        <td className="py-3 px-4 flex justify-center space-x-2">
-                          {editingPackage?.id === pkg.id ? (
-                            <button 
-                              onClick={handleUpdateTourPackage}
-                              className="p-1 text-gold hover:text-white transition-colors"
-                            >
-                              <Save size={16} />
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handleEditTourPackage(pkg)}
-                              className="p-1 text-white/70 hover:text-gold transition-colors"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => handleDeleteTourPackage(pkg.id)}
-                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="members" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-display font-semibold text-white">Manage Members</h2>
-              <button 
-                onClick={handleAddUser}
-                className="flex items-center bg-gold-dark hover:bg-gold text-white hover:text-black px-3 py-2 rounded-md transition-colors"
-              >
-                <UserPlus size={16} className="mr-2" />
-                Add New Member
-              </button>
-            </div>
-            
-            {loadingUsers ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Name</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Email</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Membership Tier</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Points</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id} className="border-b border-white/10 hover:bg-white/10">
-                        <td className="py-3 px-4 text-white">
-                          {editingUser?.id === user.id ? (
-                            <input
-                              type="text"
-                              value={editingUser.name}
-                              onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            user.name
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingUser?.id === user.id ? (
-                            <input
-                              type="email"
-                              value={editingUser.email}
-                              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            user.email
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingUser?.id === user.id ? (
-                            <select
-                              value={editingUser.membership_tier}
-                              onChange={(e) => setEditingUser({
-                                ...editingUser, 
-                                membership_tier: e.target.value as 'Silver' | 'Gold' | 'Platinum'
-                              })}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            >
-                              <option value="Silver">Silver</option>
-                              <option value="Gold">Gold</option>
-                              <option value="Platinum">Platinum</option>
-                            </select>
-                          ) : (
-                            user.membership_tier
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-gold">
-                          {editingUser?.id === user.id ? (
-                            <input
-                              type="number"
-                              value={editingUser.points}
-                              onChange={(e) => setEditingUser({...editingUser, points: parseInt(e.target.value)})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            user.points.toLocaleString()
-                          )}
-                        </td>
-                        <td className="py-3 px-4 flex justify-center space-x-2">
-                          {editingUser?.id === user.id ? (
-                            <button 
-                              onClick={handleUpdateUser}
-                              className="p-1 text-gold hover:text-white transition-colors"
-                            >
-                              <Save size={16} />
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handleEditUser(user)}
-                              className="p-1 text-white/70 hover:text-gold transition-colors"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          <button 
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="p-1 text-white/70 hover:text-red-500 transition-colors"
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="content" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-display font-semibold text-white">Manage Website Content</h2>
-            </div>
-            
-            {loadingContent ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Section</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Title</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Content</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Status</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {websiteContent.map((content) => (
-                      <tr key={content.id} className="border-b border-white/10 hover:bg-white/10">
-                        <td className="py-3 px-4 text-white">
-                          {editingContent?.id === content.id ? (
-                            <input
-                              type="text"
-                              value={editingContent.section}
-                              onChange={(e) => setEditingContent({...editingContent, section: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            content.section
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingContent?.id === content.id ? (
-                            <input
-                              type="text"
-                              value={editingContent.title}
-                              onChange={(e) => setEditingContent({...editingContent, title: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            />
-                          ) : (
-                            content.title
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingContent?.id === content.id ? (
-                            <textarea
-                              value={editingContent.content}
-                              onChange={(e) => setEditingContent({...editingContent, content: e.target.value})}
-                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white h-20"
-                            />
-                          ) : (
-                            <div className="max-w-xs truncate">{content.content}</div>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {editingContent?.id === content.id ? (
-                            <select
-                              value={editingContent.active ? "true" : "false"}
-                              onChange={(e) => setEditingContent({
-                                ...editingContent, 
-                                active: e.target.value === "true"
-                              })}
-                              className="bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                            >
-                              <option value="true">Active</option>
-                              <option value="false">Inactive</option>
-                            </select>
-                          ) : (
-                            <span className={content.active ? "text-green-500" : "text-red-500"}>
-                              {content.active ? "Active" : "Inactive"}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 flex justify-center space-x-2">
-                          {editingContent?.id === content.id ? (
-                            <button 
-                              onClick={handleUpdateContent}
-                              className="p-1 text-gold hover:text-white transition-colors"
-                            >
-                              <Save size={16} />
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handleEditContent(content)}
-                              className="p-1 text-white/70 hover:text-gold transition-colors"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="settings" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-display font-semibold text-white">System Settings</h2>
-            </div>
-
-            {loadingSettings ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-gold" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Setting</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Value</th>
-                      <th className="text-left py-3 px-4 text-white/70 font-medium">Description</th>
-                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {systemSettings.map((setting) => (
-                      <tr key={setting.id} className="border-b border-white/10 hover:bg-white/10">
-                        <td className="py-3 px-4 text-white font-medium">
-                          {setting.setting_key}
-                        </td>
-                        <td className="py-3 px-4 text-white">
-                          {editingSetting?.id === setting.id ? (
-                            setting.setting_key === 'maintenance_mode' ? (
-                              <select
-                                value={editingSetting.setting_value}
-                                onChange={(e) => setEditingSetting({...editingSetting, setting_value: e.target.value})}
-                                className="bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                              >
-                                <option value="true">Enabled</option>
-                                <option value="false">Disabled</option>
-                              </select>
-                            ) : (
-                              <input
-                                type="text"
-                                value={editingSetting.setting_value}
-                                onChange={(e) => setEditingSetting({...editingSetting, setting_value: e.target.value})}
-                                className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
-                              />
-                            )
-                          ) : (
-                            setting.setting_key === 'maintenance_mode' ? 
-                              (setting.setting_value === 'true' ? 'Enabled' : 'Disabled') : 
-                              setting.setting_value
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-white/70">
-                          {setting.description}
-                        </td>
-                        <td className="py-3 px-4 flex justify-center space-x-2">
-                          {editingSetting?.id === setting.id ? (
-                            <button 
-                              onClick={handleUpdateSetting}
-                              className="p-1 text-gold hover:text-white transition-colors"
-                            >
-                              <Save size={16} />
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => handleEditSetting(setting)}
-                              className="p-1 text-white/70 hover:text-gold transition-colors"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                <div className="mt-6 p-4 bg-black/30 border border-white/10 rounded-lg">
-                  <div className="flex items-start">
-                    <CheckCircle2 className="h-5 w-5 text-gold mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="text-white font-medium">Settings are saved automatically</h3>
-                      <p className="text-white/70 text-sm mt-1">
-                        Any changes made to these settings will take effect immediately across the website.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
-
-export default Admin;
+                  {/* Total Tour Packages */}
+                  <Card className="bg-black border-white/10">
+                    <CardHeader>
+                      <CardTitle>Total Tour Packages</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingPackages ? (
+                        <Loader2 className="

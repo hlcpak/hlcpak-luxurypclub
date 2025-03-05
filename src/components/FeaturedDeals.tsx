@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Star, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { getHotelDeals, getTourPackages, HotelDeal, TourPackage } from '@/lib/supabase';
@@ -37,20 +38,44 @@ const FeaturedDeals = () => {
         if (item) observer.unobserve(item);
       });
     };
-  }, []);
+  }, [hotelDeals.length, tourPackages.length]); // Add dependencies to re-observe after data loads
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch real data from Supabase
         const deals = await getHotelDeals();
         const packages = await getTourPackages();
         
         console.log("Fetched hotel deals:", deals);
         console.log("Fetched tour packages:", packages);
         
-        setHotelDeals(deals.length > 0 ? deals : fallbackHotelDeals);
-        setTourPackages(packages.length > 0 ? packages : fallbackTourPackages);
+        // Only use fallback if no data is returned
+        if (deals && deals.length > 0) {
+          setHotelDeals(deals);
+        } else {
+          console.log("Using fallback hotel deals data");
+          setHotelDeals(fallbackHotelDeals);
+          toast({
+            title: "Notice",
+            description: "Using sample hotel deals data.",
+            variant: "default"
+          });
+        }
+        
+        if (packages && packages.length > 0) {
+          setTourPackages(packages);
+        } else {
+          console.log("Using fallback tour packages data");
+          setTourPackages(fallbackTourPackages);
+          toast({
+            title: "Notice",
+            description: "Using sample tour packages data.",
+            variant: "default"
+          });
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -204,7 +229,7 @@ const FeaturedDeals = () => {
         
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="flex justify-between items-center">
-            <div className="opacity-100">
+            <div className="opacity-100 group-hover:opacity-100">
               <span className="text-xs text-white/50">Member Price</span>
               <div className="text-xl font-display font-bold text-gold">
                 ${item.member_price}
@@ -263,7 +288,7 @@ const FeaturedDeals = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {hotelDeals.map((deal, index) => (
+            {hotelDeals.slice(0, 3).map((deal, index) => (
               <DealCard key={deal.id} item={deal} index={index} type="hotel" />
             ))}
           </div>
@@ -278,7 +303,7 @@ const FeaturedDeals = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tourPackages.map((pkg, index) => (
+            {tourPackages.slice(0, 3).map((pkg, index) => (
               <DealCard key={pkg.id} item={pkg} index={index} type="tour" />
             ))}
           </div>
