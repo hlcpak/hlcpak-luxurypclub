@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -920,4 +921,891 @@ const Admin = () => {
                     </CardHeader>
                     <CardContent>
                       {loadingPackages ? (
-                        <Loader2 className="
+                        <Loader2 className="animate-spin text-gold" />
+                      ) : (
+                        <div className="text-3xl font-bold">{tourPackages.length}</div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                  {/* Membership Distribution */}
+                  <Card className="bg-black border-white/10">
+                    <CardHeader>
+                      <CardTitle>Membership Distribution</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={membershipData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            >
+                              {membershipData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Revenue by Membership */}
+                  <Card className="bg-black border-white/10">
+                    <CardHeader>
+                      <CardTitle>Revenue by Membership</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={transactionData}
+                            margin={{
+                              top: 5,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="amount" fill="#FFD700" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Hotel Deals Tab Content */}
+          <TabsContent value="hotel-deals">
+            <Card className="bg-black border-white/10">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-gold">Hotel Deals</CardTitle>
+                  <CardDescription>Manage all hotel deals available on the platform</CardDescription>
+                </div>
+                <Button onClick={() => setShowAddDealForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Deal
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search deals..."
+                      className="pl-8 bg-black/50 border-white/20"
+                      value={dealSearchTerm}
+                      onChange={(e) => setDealSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                {loadingDeals ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead>Image</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Rating</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredHotelDeals.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                              No hotel deals found. Add some deals to get started.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredHotelDeals.map((deal) => (
+                            <TableRow key={deal.id} className="border-white/10">
+                              <TableCell>
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={deal.image} alt={deal.name} />
+                                  <AvatarFallback>{deal.name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                              </TableCell>
+                              <TableCell>{deal.name}</TableCell>
+                              <TableCell>{deal.location}</TableCell>
+                              <TableCell>{deal.rating} Stars</TableCell>
+                              <TableCell>${deal.member_price}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="icon" onClick={() => setEditingDeal(deal)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-black border-white/10 text-white">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit Hotel Deal</DialogTitle>
+                                      </DialogHeader>
+                                      {editingDeal && (
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-name">Name</Label>
+                                            <Input 
+                                              id="edit-name" 
+                                              value={editingDeal.name} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, name: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-location">Location</Label>
+                                            <Input 
+                                              id="edit-location" 
+                                              value={editingDeal.location} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, location: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-image">Image URL</Label>
+                                            <Input 
+                                              id="edit-image" 
+                                              value={editingDeal.image} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, image: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-rating">Rating</Label>
+                                            <Select 
+                                              value={editingDeal.rating.toString()} 
+                                              onValueChange={(value) => setEditingDeal({...editingDeal, rating: parseInt(value)})}
+                                            >
+                                              <SelectTrigger className="bg-black/50 border-white/20">
+                                                <SelectValue placeholder="Select Rating" />
+                                              </SelectTrigger>
+                                              <SelectContent className="bg-black border-white/10 text-white">
+                                                {[1, 2, 3, 4, 5].map(rating => (
+                                                  <SelectItem key={rating} value={rating.toString()}>{rating} Stars</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-deal">Deal</Label>
+                                            <Input 
+                                              id="edit-deal" 
+                                              value={editingDeal.deal} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, deal: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-regular-price">Regular Price</Label>
+                                            <Input 
+                                              type="number"
+                                              id="edit-regular-price" 
+                                              value={editingDeal.regular_price} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, regular_price: parseFloat(e.target.value)})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-member-price">Member Price</Label>
+                                            <Input 
+                                              type="number"
+                                              id="edit-member-price" 
+                                              value={editingDeal.member_price} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, member_price: parseFloat(e.target.value)})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-duration">Duration</Label>
+                                            <Input 
+                                              id="edit-duration" 
+                                              value={editingDeal.duration} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, duration: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-description">Description</Label>
+                                            <Textarea 
+                                              id="edit-description" 
+                                              rows={3}
+                                              value={editingDeal.description} 
+                                              onChange={(e) => setEditingDeal({...editingDeal, description: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setEditingDeal(null)}>Cancel</Button>
+                                        <Button onClick={handleUpdateDeal}>Save Changes</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                  
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="icon" className="bg-red-500/20 hover:bg-red-500/30">
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="bg-black border-white/10 text-white">
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will permanently delete the hotel deal. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel className="bg-black/50 border-white/20">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          className="bg-red-500"
+                                          onClick={() => handleDeleteDeal(deal.id)}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+            {renderAddDealForm()}
+          </TabsContent>
+          
+          {/* Tour Packages Tab Content */}
+          <TabsContent value="tour-packages">
+            <Card className="bg-black border-white/10">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-gold">Tour Packages</CardTitle>
+                  <CardDescription>Manage all tour packages available on the platform</CardDescription>
+                </div>
+                <Button onClick={() => setShowAddPackageForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Package
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search packages..."
+                      className="pl-8 bg-black/50 border-white/20"
+                      value={packageSearchTerm}
+                      onChange={(e) => setPackageSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                {loadingPackages ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead>Image</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Rating</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredTourPackages.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                              No tour packages found. Add some packages to get started.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredTourPackages.map((pkg) => (
+                            <TableRow key={pkg.id} className="border-white/10">
+                              <TableCell>
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={pkg.image} alt={pkg.name} />
+                                  <AvatarFallback>{pkg.name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                              </TableCell>
+                              <TableCell>{pkg.name}</TableCell>
+                              <TableCell>{pkg.location}</TableCell>
+                              <TableCell>{pkg.rating} Stars</TableCell>
+                              <TableCell>${pkg.member_price}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="icon" onClick={() => setEditingPackage(pkg)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-black border-white/10 text-white">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit Tour Package</DialogTitle>
+                                      </DialogHeader>
+                                      {editingPackage && (
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-name">Name</Label>
+                                            <Input 
+                                              id="edit-name" 
+                                              value={editingPackage.name} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, name: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-location">Location</Label>
+                                            <Input 
+                                              id="edit-location" 
+                                              value={editingPackage.location} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, location: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-image">Image URL</Label>
+                                            <Input 
+                                              id="edit-image" 
+                                              value={editingPackage.image} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, image: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-rating">Rating</Label>
+                                            <Select 
+                                              value={editingPackage.rating.toString()} 
+                                              onValueChange={(value) => setEditingPackage({...editingPackage, rating: parseInt(value)})}
+                                            >
+                                              <SelectTrigger className="bg-black/50 border-white/20">
+                                                <SelectValue placeholder="Select Rating" />
+                                              </SelectTrigger>
+                                              <SelectContent className="bg-black border-white/10 text-white">
+                                                {[1, 2, 3, 4, 5].map(rating => (
+                                                  <SelectItem key={rating} value={rating.toString()}>{rating} Stars</SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-deal">Deal</Label>
+                                            <Input 
+                                              id="edit-deal" 
+                                              value={editingPackage.deal} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, deal: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-regular-price">Regular Price</Label>
+                                            <Input 
+                                              type="number"
+                                              id="edit-regular-price" 
+                                              value={editingPackage.regular_price} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, regular_price: parseFloat(e.target.value)})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-member-price">Member Price</Label>
+                                            <Input 
+                                              type="number"
+                                              id="edit-member-price" 
+                                              value={editingPackage.member_price} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, member_price: parseFloat(e.target.value)})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-duration">Duration</Label>
+                                            <Input 
+                                              id="edit-duration" 
+                                              value={editingPackage.duration} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, duration: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-description">Description</Label>
+                                            <Textarea 
+                                              id="edit-description" 
+                                              rows={3}
+                                              value={editingPackage.description} 
+                                              onChange={(e) => setEditingPackage({...editingPackage, description: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setEditingPackage(null)}>Cancel</Button>
+                                        <Button onClick={handleUpdatePackage}>Save Changes</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                  
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="icon" className="bg-red-500/20 hover:bg-red-500/30">
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="bg-black border-white/10 text-white">
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will permanently delete the tour package. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel className="bg-black/50 border-white/20">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          className="bg-red-500"
+                                          onClick={() => handleDeletePackage(pkg.id)}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+            {renderAddPackageForm()}
+          </TabsContent>
+          
+          {/* Users Tab Content */}
+          <TabsContent value="users">
+            <Card className="bg-black border-white/10">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-gold">Users</CardTitle>
+                  <CardDescription>Manage all users registered on the platform</CardDescription>
+                </div>
+                <Button onClick={() => setShowAddUserForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search users..."
+                      className="pl-8 bg-black/50 border-white/20"
+                      value={userSearchTerm}
+                      onChange={(e) => setUserSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                {loadingUsers ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Membership</TableHead>
+                          <TableHead>Points</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredUsers.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8">
+                              No users found. Add some users to get started.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredUsers.map((user) => (
+                            <TableRow key={user.id} className="border-white/10">
+                              <TableCell>{user.name}</TableCell>
+                              <TableCell>{user.email}</TableCell>
+                              <TableCell>
+                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  user.membership_tier === 'Silver' ? 'bg-gray-200 text-gray-800' :
+                                  user.membership_tier === 'Gold' ? 'bg-yellow-200 text-yellow-800' :
+                                  'bg-gray-300 text-gray-800'
+                                }`}>
+                                  {user.membership_tier}
+                                </div>
+                              </TableCell>
+                              <TableCell>{user.points}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="icon" onClick={() => setEditingUser(user)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-black border-white/10 text-white">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit User</DialogTitle>
+                                      </DialogHeader>
+                                      {editingUser && (
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-name">Name</Label>
+                                            <Input 
+                                              id="edit-name" 
+                                              value={editingUser.name} 
+                                              onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-email">Email</Label>
+                                            <Input 
+                                              id="edit-email" 
+                                              value={editingUser.email} 
+                                              onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-membership">Membership Tier</Label>
+                                            <Select 
+                                              value={editingUser.membership_tier} 
+                                              onValueChange={(value) => setEditingUser({...editingUser, membership_tier: value as 'Silver' | 'Gold' | 'Platinum'})}
+                                            >
+                                              <SelectTrigger className="bg-black/50 border-white/20">
+                                                <SelectValue placeholder="Select Tier" />
+                                              </SelectTrigger>
+                                              <SelectContent className="bg-black border-white/10 text-white">
+                                                <SelectItem value="Silver">Silver</SelectItem>
+                                                <SelectItem value="Gold">Gold</SelectItem>
+                                                <SelectItem value="Platinum">Platinum</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-points">Points</Label>
+                                            <Input 
+                                              type="number"
+                                              id="edit-points" 
+                                              value={editingUser.points} 
+                                              onChange={(e) => setEditingUser({...editingUser, points: parseInt(e.target.value)})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button>
+                                        <Button onClick={handleUpdateUser}>Save Changes</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                  
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="icon" className="bg-red-500/20 hover:bg-red-500/30">
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="bg-black border-white/10 text-white">
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This will permanently delete the user. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel className="bg-black/50 border-white/20">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          className="bg-red-500"
+                                          onClick={() => handleDeleteUser(user.id)}
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+            {renderAddUserForm()}
+          </TabsContent>
+          
+          {/* Website Content Tab */}
+          <TabsContent value="website-content">
+            <Card className="bg-black border-white/10">
+              <CardHeader>
+                <CardTitle className="text-gold">Website Content</CardTitle>
+                <CardDescription>Manage all content displayed on the website</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingContent ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead>Title</TableHead>
+                          <TableHead>Content</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {websiteContent.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-8">
+                              No content found.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          websiteContent.map((content) => (
+                            <TableRow key={content.id} className="border-white/10">
+                              <TableCell>{content.title}</TableCell>
+                              <TableCell>
+                                <div className="max-w-xs truncate">
+                                  {content.content}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {content.active ? (
+                                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Active
+                                  </div>
+                                ) : (
+                                  <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Inactive
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="icon" onClick={() => handleEditContent(content)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-black border-white/10 text-white">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit Content</DialogTitle>
+                                      </DialogHeader>
+                                      {editingContent && (
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-title">Title</Label>
+                                            <Input 
+                                              id="edit-title" 
+                                              value={editingContent.title} 
+                                              onChange={(e) => setEditingContent({...editingContent, title: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-content">Content</Label>
+                                            <Textarea 
+                                              id="edit-content" 
+                                              rows={5}
+                                              value={editingContent.content} 
+                                              onChange={(e) => setEditingContent({...editingContent, content: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <Switch 
+                                              id="active" 
+                                              checked={editingContent.active} 
+                                              onCheckedChange={(checked) => setEditingContent({...editingContent, active: checked})}
+                                            />
+                                            <Label htmlFor="active">Active</Label>
+                                          </div>
+                                        </div>
+                                      )}
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setEditingContent(null)}>Cancel</Button>
+                                        <Button onClick={handleSaveContent}>Save Changes</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <Card className="bg-black border-white/10">
+              <CardHeader>
+                <CardTitle className="text-gold">System Settings</CardTitle>
+                <CardDescription>Configure global system settings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingSettings ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-gold" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead>Setting</TableHead>
+                          <TableHead>Value</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {systemSettings.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-8">
+                              No settings found.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          systemSettings.map((setting) => (
+                            <TableRow key={setting.id} className="border-white/10">
+                              <TableCell>{setting.setting_name}</TableCell>
+                              <TableCell>{setting.setting_value}</TableCell>
+                              <TableCell>{setting.setting_description}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="icon" onClick={() => handleEditSetting(setting)}>
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="bg-black border-white/10 text-white">
+                                      <DialogHeader>
+                                        <DialogTitle>Edit Setting</DialogTitle>
+                                      </DialogHeader>
+                                      {editingSetting && (
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-setting-name">Setting Name</Label>
+                                            <Input 
+                                              id="edit-setting-name" 
+                                              value={editingSetting.setting_name} 
+                                              readOnly
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-setting-value">Value</Label>
+                                            <Input 
+                                              id="edit-setting-value" 
+                                              value={editingSetting.setting_value} 
+                                              onChange={(e) => setEditingSetting({...editingSetting, setting_value: e.target.value})}
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="edit-setting-desc">Description</Label>
+                                            <Input 
+                                              id="edit-setting-desc" 
+                                              value={editingSetting.setting_description} 
+                                              readOnly
+                                              className="bg-black/50 border-white/20"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+                                      <DialogFooter>
+                                        <Button variant="outline" onClick={() => setEditingSetting(null)}>Cancel</Button>
+                                        <Button onClick={handleSaveSetting}>Save Changes</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default Admin;
