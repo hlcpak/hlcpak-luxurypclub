@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -174,7 +173,6 @@ const Admin = () => {
   };
 
   const handleSubmitNewDeal = async () => {
-    // Validation
     if (!newDeal.name || !newDeal.location || !newDeal.image || !newDeal.deal || 
         !newDeal.duration || newDeal.regular_price <= 0 || newDeal.member_price <= 0) {
       toast({
@@ -190,7 +188,6 @@ const Admin = () => {
       if (addedDeal) {
         setHotelDeals([...hotelDeals, addedDeal]);
         setShowAddDealForm(false);
-        // Reset form
         setNewDeal({
           name: '',
           location: '',
@@ -271,7 +268,6 @@ const Admin = () => {
   };
 
   const handleSubmitNewPackage = async () => {
-    // Validation
     if (!newPackage.name || !newPackage.location || !newPackage.image || !newPackage.deal || 
         !newPackage.duration || newPackage.regular_price <= 0 || newPackage.member_price <= 0) {
       toast({
@@ -287,7 +283,6 @@ const Admin = () => {
       if (addedPackage) {
         setTourPackages([...tourPackages, addedPackage]);
         setShowAddPackageForm(false);
-        // Reset form
         setNewPackage({
           name: '',
           location: '',
@@ -1114,7 +1109,10 @@ const Admin = () => {
                           {editingUser?.id === user.id ? (
                             <select
                               value={editingUser.membership_tier}
-                              onChange={(e) => setEditingUser({...editingUser, membership_tier: e.target.value})}
+                              onChange={(e) => setEditingUser({
+                                ...editingUser, 
+                                membership_tier: e.target.value as 'Silver' | 'Gold' | 'Platinum'
+                              })}
                               className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
                             >
                               <option value="Silver">Silver</option>
