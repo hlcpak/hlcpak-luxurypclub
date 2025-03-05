@@ -1,5 +1,5 @@
-
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Star, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { getHotelDeals, getTourPackages, HotelDeal, TourPackage } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,6 +11,7 @@ const FeaturedDeals = () => {
   const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -92,6 +93,14 @@ const FeaturedDeals = () => {
 
     fetchData();
   }, [toast]);
+
+  const handleViewDeal = (id: number, type: 'hotel' | 'tour') => {
+    if (type === 'hotel') {
+      navigate(`/deals/${id}`);
+    } else {
+      navigate(`/packages/${id}`);
+    }
+  };
 
   const fallbackHotelDeals = [
     {
@@ -245,7 +254,10 @@ const FeaturedDeals = () => {
           </div>
         </div>
         
-        <button className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors">
+        <button 
+          onClick={() => handleViewDeal(item.id, type)}
+          className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors"
+        >
           View Details
         </button>
       </div>

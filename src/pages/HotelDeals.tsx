@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getHotelDeals, HotelDeal } from '@/lib/supabase';
@@ -10,6 +11,7 @@ const HotelDeals = () => {
   const [deals, setDeals] = useState<HotelDeal[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,6 +33,10 @@ const HotelDeals = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDeal = (dealId: number) => {
+    navigate(`/deals/${dealId}`);
   };
 
   return (
@@ -113,8 +119,11 @@ const HotelDeals = () => {
                         </div>
                       </div>
                       
-                      <button className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors">
-                        Book Now
+                      <button 
+                        onClick={() => handleViewDeal(deal.id)} 
+                        className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors"
+                      >
+                        View Details
                       </button>
                     </div>
                   </div>
