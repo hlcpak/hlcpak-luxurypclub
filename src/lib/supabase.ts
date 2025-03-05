@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Define your Supabase URL and key - these will be injected from environment variables
@@ -52,6 +51,25 @@ export type Transaction = {
   membership_type: 'Silver' | 'Gold' | 'Platinum';
   status: 'Pending' | 'Completed';
   created_at: string;
+}
+
+export type WebsiteContent = {
+  id: number;
+  section: string;
+  title: string;
+  content: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type SiteSetting = {
+  id: number;
+  setting_key: string;
+  setting_value: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Database service functions
@@ -259,4 +277,105 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'crea
   }
   
   return data;
+};
+
+export const getWebsiteContent = async (): Promise<WebsiteContent[]> => {
+  // This is a mock implementation since the table doesn't exist yet
+  // In a real implementation, you would query the database
+  return [
+    {
+      id: 1,
+      section: 'hero',
+      title: 'Luxury Travel for Discerning Travelers',
+      content: 'Experience the epitome of luxury with our exclusive member-only travel deals.',
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      section: 'about',
+      title: 'About Our Exclusive Club',
+      content: 'The Luxury Privilege Club offers members-only access to the finest hotels and experiences worldwide.',
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      section: 'footer',
+      title: 'Contact Information',
+      content: 'Email: contact@luxuryprivilegeclub.com | Phone: +1 (800) 123-4567',
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+};
+
+export const updateWebsiteContent = async (id: number, updates: Partial<WebsiteContent>): Promise<WebsiteContent | null> => {
+  // This is a mock implementation
+  console.log('Updating website content:', id, updates);
+  // In a real implementation, you would update the database
+  return {
+    id,
+    section: updates.section || 'section',
+    title: updates.title || 'Title',
+    content: updates.content || 'Content',
+    active: updates.active !== undefined ? updates.active : true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+};
+
+export const getSystemSettings = async (): Promise<SiteSetting[]> => {
+  // This is a mock implementation
+  return [
+    {
+      id: 1,
+      setting_key: 'site_name',
+      setting_value: 'Luxury Privilege Club',
+      description: 'The name of the website',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      setting_key: 'contact_email',
+      setting_value: 'contact@luxuryprivilegeclub.com',
+      description: 'Primary contact email',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      setting_key: 'currency',
+      setting_value: 'USD',
+      description: 'Default currency for prices',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 4,
+      setting_key: 'maintenance_mode',
+      setting_value: 'false',
+      description: 'Enable/disable site maintenance mode',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+};
+
+export const updateSystemSetting = async (id: number, value: string): Promise<SiteSetting | null> => {
+  // This is a mock implementation
+  console.log('Updating system setting:', id, value);
+  // In a real implementation, you would update the database
+  return {
+    id,
+    setting_key: 'updated_setting',
+    setting_value: value,
+    description: 'Updated setting',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
 };

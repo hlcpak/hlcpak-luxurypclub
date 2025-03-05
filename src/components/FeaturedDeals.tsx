@@ -43,27 +43,19 @@ const FeaturedDeals = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [deals, packages] = await Promise.all([
-          getHotelDeals(),
-          getTourPackages()
-        ]);
+        const deals = await getHotelDeals();
+        const packages = await getTourPackages();
         
-        if (deals.length > 0) {
-          setHotelDeals(deals);
-        } else {
-          setHotelDeals(fallbackHotelDeals);
-        }
+        console.log("Fetched hotel deals:", deals);
+        console.log("Fetched tour packages:", packages);
         
-        if (packages.length > 0) {
-          setTourPackages(packages);
-        } else {
-          setTourPackages(fallbackTourPackages);
-        }
+        setHotelDeals(deals.length > 0 ? deals : fallbackHotelDeals);
+        setTourPackages(packages.length > 0 ? packages : fallbackTourPackages);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
           title: "Error",
-          description: "Failed to load deals. Please try again later.",
+          description: "Failed to load deals. Using fallback data instead.",
           variant: "destructive"
         });
         setHotelDeals(fallbackHotelDeals);

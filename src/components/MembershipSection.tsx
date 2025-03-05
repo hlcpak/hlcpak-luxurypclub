@@ -125,7 +125,7 @@ const MembershipSection = () => {
                 </div>
               )}
               
-              <div className="p-8 pt-12">
+              <div className={`p-8 ${tier.recommended ? 'pt-12' : ''}`}>
                 <h3 className="text-2xl font-display font-semibold text-white">{tier.name}</h3>
                 <div className="mt-4 flex items-baseline">
                   <span className="text-3xl font-display font-bold text-gold">{tier.currency}{tier.price.toLocaleString()}</span>
@@ -157,8 +157,6 @@ const MembershipSection = () => {
             </div>
           ))}
         </div>
-
-        {/* Tier Comparison Chart has been removed */}
       </div>
     </section>
   );

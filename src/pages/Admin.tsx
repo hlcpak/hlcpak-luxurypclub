@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { Pencil, Trash, PlusCircle, Save, LogOut, Eye, Loader2, UserPlus, X } from 'lucide-react';
+import { Pencil, Trash, PlusCircle, Save, LogOut, Eye, Loader2, UserPlus, X, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getHotelDeals, 
@@ -17,10 +17,16 @@ import {
   addUser,
   updateUser,
   deleteUser,
+  getWebsiteContent,
+  updateWebsiteContent,
+  getSystemSettings,
+  updateSystemSetting,
   HotelDeal,
   TourPackage,
   User,
-  Transaction
+  Transaction,
+  WebsiteContent,
+  SiteSetting
 } from '@/lib/supabase';
 
 const Admin = () => {
@@ -31,9 +37,13 @@ const Admin = () => {
   const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [websiteContent, setWebsiteContent] = useState<WebsiteContent[]>([]);
+  const [systemSettings, setSystemSettings] = useState<SiteSetting[]>([]);
   const [loadingDeals, setLoadingDeals] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(false);
   const [editingDeal, setEditingDeal] = useState<HotelDeal | null>(null);
   const [editingPackage, setEditingPackage] = useState<TourPackage | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -73,6 +83,8 @@ const Admin = () => {
       fetchTourPackages();
       fetchUsers();
       fetchTransactions();
+      fetchWebsiteContent();
+      fetchSystemSettings();
     }
   }, [isAuthenticated]);
 
@@ -138,6 +150,40 @@ const Admin = () => {
         description: "Failed to load transactions",
         variant: "destructive"
       });
+    }
+  };
+
+  const fetchWebsiteContent = async () => {
+    try {
+      setLoadingContent(true);
+      const content = await getWebsiteContent();
+      setWebsiteContent(content);
+    } catch (error) {
+      console.error('Error fetching website content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load website content",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingContent(false);
+    }
+  };
+
+  const fetchSystemSettings = async () => {
+    try {
+      setLoadingSettings(true);
+      const settings = await getSystemSettings();
+      setSystemSettings(settings);
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load system settings",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingSettings(false);
     }
   };
 
@@ -431,6 +477,64 @@ const Admin = () => {
           variant: "destructive"
         });
       }
+    }
+  };
+
+  const handleEditContent = (content: WebsiteContent) => {
+    setEditingContent(content);
+  };
+
+  const handleUpdateContent = async () => {
+    if (!editingContent) return;
+
+    try {
+      const updatedContent = await updateWebsiteContent(editingContent.id, editingContent);
+      if (updatedContent) {
+        setWebsiteContent(websiteContent.map(c => c.id === updatedContent.id ? updatedContent : c));
+        setEditingContent(null);
+        toast({
+          title: "Success",
+          description: "Content updated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update content",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditSetting = (setting: SiteSetting) => {
+    setEditingSetting(setting);
+  };
+
+  const handleUpdateSetting = async () => {
+    if (!editingSetting) return;
+
+    try {
+      const updatedSetting = await updateSystemSetting(
+        editingSetting.id, 
+        editingSetting.setting_value
+      );
+      
+      if (updatedSetting) {
+        setSystemSettings(systemSettings.map(s => s.id === updatedSetting.id ? updatedSetting : s));
+        setEditingSetting(null);
+        toast({
+          title: "Success",
+          description: "Setting updated successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update setting",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1167,17 +1271,197 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="content" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="p-8 text-center text-white/60">
-              <h3 className="text-lg font-medium text-white mb-2">Website Content Management</h3>
-              <p>This feature is coming soon.</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-display font-semibold text-white">Manage Website Content</h2>
             </div>
+            
+            {loadingContent ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Section</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Title</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Content</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Status</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {websiteContent.map((content) => (
+                      <tr key={content.id} className="border-b border-white/10 hover:bg-white/10">
+                        <td className="py-3 px-4 text-white">
+                          {editingContent?.id === content.id ? (
+                            <input
+                              type="text"
+                              value={editingContent.section}
+                              onChange={(e) => setEditingContent({...editingContent, section: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            content.section
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingContent?.id === content.id ? (
+                            <input
+                              type="text"
+                              value={editingContent.title}
+                              onChange={(e) => setEditingContent({...editingContent, title: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            />
+                          ) : (
+                            content.title
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingContent?.id === content.id ? (
+                            <textarea
+                              value={editingContent.content}
+                              onChange={(e) => setEditingContent({...editingContent, content: e.target.value})}
+                              className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white h-20"
+                            />
+                          ) : (
+                            <div className="max-w-xs truncate">{content.content}</div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {editingContent?.id === content.id ? (
+                            <select
+                              value={editingContent.active ? "true" : "false"}
+                              onChange={(e) => setEditingContent({
+                                ...editingContent, 
+                                active: e.target.value === "true"
+                              })}
+                              className="bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                            >
+                              <option value="true">Active</option>
+                              <option value="false">Inactive</option>
+                            </select>
+                          ) : (
+                            <span className={content.active ? "text-green-500" : "text-red-500"}>
+                              {content.active ? "Active" : "Inactive"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 flex justify-center space-x-2">
+                          {editingContent?.id === content.id ? (
+                            <button 
+                              onClick={handleUpdateContent}
+                              className="p-1 text-gold hover:text-white transition-colors"
+                            >
+                              <Save size={16} />
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleEditContent(content)}
+                              className="p-1 text-white/70 hover:text-gold transition-colors"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="settings" className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
-            <div className="p-8 text-center text-white/60">
-              <h3 className="text-lg font-medium text-white mb-2">Admin Settings</h3>
-              <p>This feature is coming soon.</p>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-display font-semibold text-white">System Settings</h2>
             </div>
+
+            {loadingSettings ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Setting</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Value</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Description</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {systemSettings.map((setting) => (
+                      <tr key={setting.id} className="border-b border-white/10 hover:bg-white/10">
+                        <td className="py-3 px-4 text-white font-medium">
+                          {setting.setting_key}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {editingSetting?.id === setting.id ? (
+                            setting.setting_key === 'maintenance_mode' ? (
+                              <select
+                                value={editingSetting.setting_value}
+                                onChange={(e) => setEditingSetting({...editingSetting, setting_value: e.target.value})}
+                                className="bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                              >
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                value={editingSetting.setting_value}
+                                onChange={(e) => setEditingSetting({...editingSetting, setting_value: e.target.value})}
+                                className="w-full bg-black/50 border border-white/20 rounded-md px-2 py-1 text-white"
+                              />
+                            )
+                          ) : (
+                            setting.setting_key === 'maintenance_mode' ? 
+                              (setting.setting_value === 'true' ? 'Enabled' : 'Disabled') : 
+                              setting.setting_value
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-white/70">
+                          {setting.description}
+                        </td>
+                        <td className="py-3 px-4 flex justify-center space-x-2">
+                          {editingSetting?.id === setting.id ? (
+                            <button 
+                              onClick={handleUpdateSetting}
+                              className="p-1 text-gold hover:text-white transition-colors"
+                            >
+                              <Save size={16} />
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleEditSetting(setting)}
+                              className="p-1 text-white/70 hover:text-gold transition-colors"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                <div className="mt-6 p-4 bg-black/30 border border-white/10 rounded-lg">
+                  <div className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 text-gold mr-2 mt-0.5" />
+                    <div>
+                      <h3 className="text-white font-medium">Settings are saved automatically</h3>
+                      <p className="text-white/70 text-sm mt-1">
+                        Any changes made to these settings will take effect immediately across the website.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
