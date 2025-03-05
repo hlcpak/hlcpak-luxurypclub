@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
@@ -1738,9 +1737,9 @@ const Admin = () => {
                         ) : (
                           systemSettings.map((setting) => (
                             <TableRow key={setting.id} className="border-white/10">
-                              <TableCell>{setting.setting_name}</TableCell>
+                              <TableCell>{setting.setting_key}</TableCell>
                               <TableCell>{setting.setting_value}</TableCell>
-                              <TableCell>{setting.setting_description}</TableCell>
+                              <TableCell>{setting.description}</TableCell>
                               <TableCell>
                                 <div className="flex space-x-2">
                                   <Dialog>
@@ -1759,7 +1758,7 @@ const Admin = () => {
                                             <Label htmlFor="edit-setting-name">Setting Name</Label>
                                             <Input 
                                               id="edit-setting-name" 
-                                              value={editingSetting.setting_name} 
+                                              value={editingSetting.setting_key} 
                                               readOnly
                                               className="bg-black/50 border-white/20"
                                             />
@@ -1777,7 +1776,7 @@ const Admin = () => {
                                             <Label htmlFor="edit-setting-desc">Description</Label>
                                             <Input 
                                               id="edit-setting-desc" 
-                                              value={editingSetting.setting_description} 
+                                              value={editingSetting.description} 
                                               readOnly
                                               className="bg-black/50 border-white/20"
                                             />
