@@ -46,8 +46,8 @@ const Footer = () => {
           {/* Column 1: About */}
           <div>
             <div className="flex items-center mb-6">
-              <span className="text-2xl font-display font-bold text-gold">LuxStay</span>
-              <span className="text-2xl font-display font-light text-white ml-1">Elite</span>
+              <span className="text-2xl font-display font-bold text-gold">Luxry Privilege</span>
+              <span className="text-2xl font-display font-light text-white ml-1">Club</span>
             </div>
             <p className="mb-6">
               Experience exclusive hotel privileges beyond ordinary booking platforms. Unlock member-only rates, VIP amenities, and exceptional service at luxury hotels worldwide.
@@ -100,7 +100,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-3 text-gold-dark flex-shrink-0" />
-                <span>info@luxstay-elite.com</span>
+                <span>info@luxuryprivilegeclub.com</span>
               </li>
             </ul>
           </div>
@@ -130,7 +130,7 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="py-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0 text-center md:text-left">
-            &copy; {year} LuxStay Elite. All rights reserved.
+            &copy; {year} Luxury Privilege Club. All rights reserved.
           </div>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
             {legalLinks.map((link) => (
