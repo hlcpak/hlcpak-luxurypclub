@@ -91,13 +91,12 @@ const Footer = () => {
               <li className="flex items-start">
                 <MapPin size={18} className="mr-3 text-gold-dark flex-shrink-0 mt-1" />
                 <span>
-                  123 Luxury Lane, Elite Towers,<br />
-                  Mumbai, MH 400001, India
+                 Suite 203, Progressive Square Plaza,Main Shahra e Faisal, Karachi
                 </span>
               </li>
               <li className="flex items-center">
                 <PhoneCall size={18} className="mr-3 text-gold-dark flex-shrink-0" />
-                <span>+91 9876 543 210</span>
+                <span>+92 336 8356375</span>
               </li>
               <li className="flex items-center">
                 <Mail size={18} className="mr-3 text-gold-dark flex-shrink-0" />
