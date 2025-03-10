@@ -44,7 +44,7 @@ const BenefitsSection = () => {
   const benefits = [
     {
       title: 'Better Rates Than OTAs',
-      description: 'Enjoy privileged pricing that beats major booking platforms by up to 30%.',
+      description: 'Enjoy privileged pricing that beats major booking platforms by up to 40%.',
       icon: <BadgePercent className="h-6 w-6 text-gold" />,
       delay: 'delay-100'
     },
