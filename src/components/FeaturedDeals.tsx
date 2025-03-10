@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Star, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { getHotelDeals, getTourPackages, HotelDeal, TourPackage } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
+import DealsSection from './deals/DealsSection';
 
 const FeaturedDeals = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -11,7 +10,6 @@ const FeaturedDeals = () => {
   const [tourPackages, setTourPackages] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -48,9 +46,6 @@ const FeaturedDeals = () => {
         
         const deals = await getHotelDeals();
         const packages = await getTourPackages();
-        
-        console.log("Fetched hotel deals:", deals);
-        console.log("Fetched tour packages:", packages);
         
         if (deals && deals.length > 0) {
           setHotelDeals(deals);
@@ -91,14 +86,6 @@ const FeaturedDeals = () => {
 
     fetchData();
   }, [toast]);
-
-  const handleViewDeal = (id: number, type: 'hotel' | 'tour') => {
-    if (type === 'hotel') {
-      navigate(`/deals/${id}`);
-    } else {
-      navigate(`/packages/${id}`);
-    }
-  };
 
   const fallbackHotelDeals = [
     {
@@ -178,94 +165,6 @@ const FeaturedDeals = () => {
     }
   ];
 
-  const getDelayClass = (index: number): string => {
-    switch (index % 3) {
-      case 0: return 'delay-100';
-      case 1: return 'delay-200';
-      case 2: return 'delay-300';
-      default: return 'delay-100';
-    }
-  };
-
-  const convertToPKR = (usdPrice: number) => {
-    return (usdPrice * 280).toLocaleString();
-  };
-
-  const DealCard = ({ 
-    item, 
-    index, 
-    type
-  }: { 
-    item: (HotelDeal | TourPackage), 
-    index: number,
-    type: 'hotel' | 'tour'
-  }) => (
-    <div
-      ref={(el) => (itemsRef.current[type === 'hotel' ? index : index + hotelDeals.length] = el)}
-      className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${getDelayClass(index)} hover:border-gold/50 hover:shadow-gold"
-    >
-      <div className="relative overflow-hidden h-64">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-        <img 
-          src={item.image} 
-          alt={item.name} 
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div className="absolute bottom-4 left-4 right-4 z-20">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-0.5">
-              {[...Array(item.rating)].map((_, i) => (
-                <Star key={i} size={16} className="fill-gold text-gold" />
-              ))}
-            </div>
-            <span className="text-xs bg-gold text-black px-2 py-1 rounded group-hover:bg-gold">
-              {item.deal}
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-xl font-display font-semibold text-white mb-1 group-hover:text-gold transition-colors">
-              {item.name}
-            </h3>
-            <div className="flex items-center text-white/60 text-sm">
-              <MapPin size={14} className="mr-1" />
-              {item.location}
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 pt-4 border-t border-white/10">
-          <div className="flex justify-between items-center">
-            <div className="opacity-100 group-hover:opacity-100">
-              <span className="text-xs text-white/50">Member Price</span>
-              <div className="text-xl font-display font-bold text-gold">
-                PKR {convertToPKR(item.member_price)}
-                <span className="text-sm text-white/60 ml-1 line-through">
-                  PKR {convertToPKR(item.regular_price)}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center text-white/60 text-xs">
-              <Clock size={14} className="mr-1" />
-              {item.duration}
-            </div>
-          </div>
-        </div>
-        
-        <button 
-          onClick={() => handleViewDeal(item.id, type)}
-          className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors"
-        >
-          View Details
-        </button>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <section className="py-24 bg-gradient-to-b from-black/95 to-black/90 relative">
@@ -293,35 +192,25 @@ const FeaturedDeals = () => {
           </p>
         </div>
         
-        <div className="mb-16">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-display font-semibold text-white">Hotel Deals</h3>
-            <a href="/deals" className="text-gold-dark hover:text-gold flex items-center">
-              View All Hotel Deals <ArrowRight size={16} className="ml-2" />
-            </a>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {hotelDeals.slice(0, 3).map((deal, index) => (
-              <DealCard key={deal.id} item={deal} index={index} type="hotel" />
-            ))}
-          </div>
-        </div>
+        <DealsSection
+          title="Hotel Deals"
+          items={hotelDeals}
+          type="hotel"
+          viewAllLink="/deals"
+          viewAllLabel="View All Hotel Deals"
+          itemsRef={itemsRef}
+          startIndex={0}
+        />
         
-        <div>
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-display font-semibold text-white">Tour Packages</h3>
-            <a href="/packages" className="text-gold-dark hover:text-gold flex items-center">
-              View All Tour Packages <ArrowRight size={16} className="ml-2" />
-            </a>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tourPackages.slice(0, 3).map((pkg, index) => (
-              <DealCard key={pkg.id} item={pkg} index={index} type="tour" />
-            ))}
-          </div>
-        </div>
+        <DealsSection
+          title="Tour Packages"
+          items={tourPackages}
+          type="tour"
+          viewAllLink="/packages"
+          viewAllLabel="View All Tour Packages"
+          itemsRef={itemsRef}
+          startIndex={hotelDeals.length}
+        />
       </div>
     </section>
   );

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getTourPackages, TourPackage } from '@/lib/supabase';
-import { Star, MapPin, Clock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import DealCard from '@/components/deals/DealCard';
 
 const TourPackages = () => {
   const [packages, setPackages] = useState<TourPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -34,8 +34,13 @@ const TourPackages = () => {
     }
   };
 
-  const handleViewPackage = (packageId: number) => {
-    navigate(`/packages/${packageId}`);
+  const getDelayClass = (index: number): string => {
+    switch (index % 3) {
+      case 0: return 'delay-100';
+      case 1: return 'delay-200';
+      case 2: return 'delay-300';
+      default: return 'delay-100';
+    }
   };
 
   return (
@@ -65,72 +70,15 @@ const TourPackages = () => {
               </div>
             ) : packages.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {packages.map((pkg) => (
-                  <div key={pkg.id} className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden hover:border-gold/50 hover:shadow-gold">
-                    <div className="relative overflow-hidden h-64">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                      <img 
-                        src={pkg.image} 
-                        alt={pkg.name} 
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute bottom-4 left-4 right-4 z-20">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center space-x-0.5">
-                            {[...Array(pkg.rating)].map((_, i) => (
-                              <Star key={i} size={16} className="fill-gold text-gold" />
-                            ))}
-                          </div>
-                          <span className="text-xs bg-gold text-black px-2 py-1 rounded">
-                            {pkg.deal}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-xl font-display font-semibold text-white mb-1 group-hover:text-gold transition-colors">
-                            {pkg.name}
-                          </h3>
-                          <div className="flex items-center text-white/60 text-sm">
-                            <MapPin size={14} className="mr-1" />
-                            {pkg.location}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-white/10">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <div className="bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9] text-xs px-2 py-0.5 rounded-md">
-                                Silver
-                              </div>
-                            </div>
-                            <div className="text-xl font-display font-bold text-gold mt-1 flex items-baseline">
-                              <span>PKR {(pkg.member_price * 280).toLocaleString()}</span>
-                              <span className="text-sm text-white/60 ml-1 line-through">
-                                PKR {(pkg.regular_price * 280).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center text-white/60 text-xs">
-                            <Clock size={14} className="mr-1" />
-                            {pkg.duration}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <button 
-                        onClick={() => handleViewPackage(pkg.id)} 
-                        className="w-full mt-4 py-3 rounded text-center border border-gold-dark text-white hover:bg-gold-dark transition-colors"
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+                {packages.map((pkg, index) => (
+                  <DealCard
+                    key={pkg.id}
+                    item={pkg}
+                    type="tour"
+                    index={index}
+                    delayClass={getDelayClass(index)}
+                    ref={(el) => (itemsRef.current[index] = el)}
+                  />
                 ))}
               </div>
             ) : (
