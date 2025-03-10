@@ -39,10 +39,9 @@ const HotelDeals = () => {
   };
 
   // Silver membership discount (10%)
-  const calculateSilverPrice = (regularPrice: number, memberPrice: number) => {
-    // Convert to PKR and apply silver discount to member price (10% off)
-    const priceInPKR = memberPrice * 280; // Assuming 1 USD = 280 PKR
-    return priceInPKR - (priceInPKR * 0.10);
+  const calculateSilverPrice = (regularPrice: number) => {
+    // Convert to PKR (1 USD = 280 PKR)
+    return (regularPrice * 280).toLocaleString();
   };
 
   return (
@@ -131,7 +130,7 @@ const HotelDeals = () => {
                                 Silver
                               </div>
                               <span className="text-sm font-medium text-[#C8C8C9]">
-                                PKR {calculateSilverPrice(deal.regular_price, deal.member_price).toLocaleString()}
+                                PKR {calculateSilverPrice(deal.regular_price)}
                               </span>
                             </div>
                           </div>

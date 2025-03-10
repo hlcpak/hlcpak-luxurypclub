@@ -39,21 +39,19 @@ const FeaturedDeals = () => {
         if (item) observer.unobserve(item);
       });
     };
-  }, [hotelDeals.length, tourPackages.length]); // Add dependencies to re-observe after data loads
+  }, [hotelDeals.length, tourPackages.length]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Fetch real data from Supabase
         const deals = await getHotelDeals();
         const packages = await getTourPackages();
         
         console.log("Fetched hotel deals:", deals);
         console.log("Fetched tour packages:", packages);
         
-        // Only use fallback if no data is returned
         if (deals && deals.length > 0) {
           setHotelDeals(deals);
         } else {
@@ -189,6 +187,10 @@ const FeaturedDeals = () => {
     }
   };
 
+  const convertToPKR = (usdPrice: number) => {
+    return (usdPrice * 280).toLocaleString();
+  };
+
   const DealCard = ({ 
     item, 
     index, 
@@ -200,7 +202,7 @@ const FeaturedDeals = () => {
   }) => (
     <div
       ref={(el) => (itemsRef.current[type === 'hotel' ? index : index + hotelDeals.length] = el)}
-      className={`group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${getDelayClass(index)} hover:border-gold/50 hover:shadow-gold`}
+      className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ${getDelayClass(index)} hover:border-gold/50 hover:shadow-gold"
     >
       <div className="relative overflow-hidden h-64">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
@@ -241,9 +243,9 @@ const FeaturedDeals = () => {
             <div className="opacity-100 group-hover:opacity-100">
               <span className="text-xs text-white/50">Member Price</span>
               <div className="text-xl font-display font-bold text-gold">
-                ${item.member_price}
+                PKR {convertToPKR(item.member_price)}
                 <span className="text-sm text-white/60 ml-1 line-through">
-                  ${item.regular_price}
+                  PKR {convertToPKR(item.regular_price)}
                 </span>
               </div>
             </div>

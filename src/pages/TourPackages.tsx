@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -47,6 +46,7 @@ const TourPackages = () => {
         </h1>
       </div>
       <Navbar />
+      
       <main>
         <section className="py-24 bg-black">
           <div className="container mx-auto px-4">

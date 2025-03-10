@@ -29,10 +29,10 @@ const VideoSection = () => {
   return (
     <section 
       ref={sectionRef} 
-      className="py-24 bg-black relative opacity-0 translate-y-10 transition-all duration-1000"
+      className="py-32 bg-black relative opacity-0 translate-y-10 transition-all duration-1000"
     >
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <span className="text-xs uppercase tracking-widest text-gold-dark">Explore</span>
           <h2 className="text-3xl md:text-4xl mt-2 text-white">Luxury <span className="text-gold">Destinations</span></h2>
           <div className="h-px w-24 bg-gold-dark mx-auto mt-4"></div>
@@ -45,14 +45,14 @@ const VideoSection = () => {
           </Link>
         </div>
         
-        <div className="relative max-w-4xl mx-auto overflow-hidden rounded-lg shadow-elegant">
+        <div className="relative max-w-5xl mx-auto overflow-hidden rounded-lg shadow-elegant">
           <div className="aspect-w-16 aspect-h-9">
             <iframe
               src="https://www.youtube.com/embed/zvP-BoDL9I0"
               title="Luxury Travel Experience"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="w-full h-full"
+              className="w-full h-[600px]"
             ></iframe>
           </div>
           
