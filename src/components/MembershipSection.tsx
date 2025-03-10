@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 
 const MembershipSection = () => {
@@ -15,8 +16,10 @@ const MembershipSection = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,52 +54,80 @@ const MembershipSection = () => {
     setJoinDialogOpen(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would submit the form data to your backend
-    console.log('Form submitted:', { ...formData, plan: selectedPlan });
+    setIsSubmitting(true);
     
-    // Close dialog and show success message
-    setJoinDialogOpen(false);
-    toast({
-      title: "Application Submitted",
-      description: `Thank you for joining our ${selectedPlan} membership plan. We'll contact you shortly!`,
-      variant: "default"
-    });
-    
-    // Reset form
-    setFormData({ name: '', email: '', phone: '' });
+    try {
+      // In a real app, this would be an API call to your backend
+      // Here, we're simulating the API call with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Form submitted to luxuryprivilegeclub@gmail.com:', {
+        ...formData,
+        plan: selectedPlan,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Close dialog and show success message
+      setJoinDialogOpen(false);
+      toast({
+        title: "Application Submitted",
+        description: `Thank you for joining our ${selectedPlan} membership plan. We'll contact you shortly!`,
+        variant: "default"
+      });
+      
+      // Reset form
+      setFormData({ name: '', email: '', phone: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your application. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const membershipPlans = [
     {
       name: 'Silver',
       description: 'Perfect for the occasional traveler',
-      price: 499,
+      price: 35000,
+      currency: 'Rs.',
       billingPeriod: 'year',
+      discount: 'Up to 30% off',
       features: [
         'Access to exclusive hotel deals',
-        'Priority booking',
+        'Up to 30% discount on domestic hotels',
+        'Up to 20% discount on international hotels',
         'Silver tier room upgrades when available',
         'Dedicated travel concierge service',
         '24/7 customer support',
       ],
-      color: 'bg-slate-100 border-slate-200',
-      textColor: 'text-black',
+      color: 'bg-slate-100/10 border-slate-200/30',
+      textColor: 'text-[#C8C8C9]',
+      badgeColor: 'bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9]',
       buttonVariant: 'outline',
     },
     {
       name: 'Gold',
       description: 'Our most popular membership',
-      price: 999,
+      price: 70000,
+      currency: 'Rs.',
       billingPeriod: 'year',
+      discount: 'Up to 50% off',
       features: [
         'All Silver benefits',
+        'Up to 50% discount on domestic hotels',
+        'Up to 35% discount on international hotels',
         'Guaranteed room upgrades',
         'Late checkout privileges',
         'Exclusive access to partner lounges',
@@ -105,16 +136,21 @@ const MembershipSection = () => {
       ],
       color: 'bg-gold/10 border-gold',
       textColor: 'text-gold',
+      badgeColor: 'bg-gold/20 border border-gold text-gold',
       buttonVariant: 'default',
       featured: true,
     },
     {
       name: 'Platinum',
       description: 'For the elite luxury traveler',
-      price: 2499,
+      price: 150000,
+      currency: 'Rs.',
       billingPeriod: 'year',
+      discount: 'Up to 70% off',
       features: [
         'All Gold benefits',
+        'Up to 70% discount on domestic hotels',
+        'Up to 50% discount on international hotels',
         'Complimentary airport transfers',
         'Personalized travel planning',
         'VIP meet and greet at select destinations',
@@ -124,6 +160,7 @@ const MembershipSection = () => {
       ],
       color: 'bg-slate-900 border-slate-800',
       textColor: 'text-white',
+      badgeColor: 'bg-white/10 border border-white/30 text-white',
       buttonVariant: 'outline',
     },
   ];
@@ -179,16 +216,20 @@ const MembershipSection = () => {
                 <p className="text-white/60 mt-1">{plan.description}</p>
               </div>
 
-              <div className={`${plan.textColor} mb-6`}>
-                <span className="text-3xl font-bold font-display">${plan.price}</span>
-                <span className="text-white/60">/{plan.billingPeriod}</span>
+              <div className={`${plan.badgeColor} text-sm px-3 py-1.5 rounded-md inline-flex items-center mb-4 w-fit`}>
+                <span className="font-medium">{plan.discount}</span>
               </div>
 
-              {plan.name === 'Silver' && (
-                <div className="bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9] text-sm px-3 py-1.5 rounded-md inline-flex items-center mb-4 w-fit">
-                  <span className="font-medium">Silver Member</span>
+              <div className={`${plan.textColor} mb-6 relative`}>
+                <div className="flex items-baseline">
+                  <span className="text-sm mr-1">{plan.currency}</span>
+                  <span className="text-3xl font-bold font-display">{plan.price.toLocaleString()}</span>
+                  <span className="text-white/60 ml-1">/{plan.billingPeriod}</span>
                 </div>
-              )}
+                <div className="absolute -right-2 -top-2 rotate-12 bg-gradient-to-r from-gold/80 to-gold-dark/80 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                  Best Value
+                </div>
+              </div>
 
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
@@ -200,7 +241,7 @@ const MembershipSection = () => {
               </ul>
 
               <Button 
-                className="mt-auto"
+                className="mt-auto backdrop-blur-sm hover:shadow-gold/30 hover:scale-105 transition-all"
                 variant={plan.buttonVariant as any}
                 onClick={() => handleJoinClick(plan.name)}
               >
@@ -213,7 +254,7 @@ const MembershipSection = () => {
 
       {/* Join Membership Dialog */}
       <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
-        <DialogContent className="bg-black border border-white/10 text-white">
+        <DialogContent className="bg-black border border-white/10 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="text-gold">Join {selectedPlan} Membership</DialogTitle>
             <DialogDescription className="text-white/70">
@@ -259,13 +300,24 @@ const MembershipSection = () => {
                 placeholder="Enter your phone number"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="message" className="text-white">Additional Information (Optional)</Label>
+              <Textarea 
+                id="message"
+                value={formData.message}
+                onChange={handleInputChange}
+                className="bg-white/5 border-white/20 text-white resize-none min-h-[80px]"
+                placeholder="Any additional details you'd like to share..."
+              />
+            </div>
             
             <DialogFooter className="pt-4">
               <Button variant="outline" type="button" onClick={() => setJoinDialogOpen(false)} className="border-white/20 text-white hover:bg-white/10">
                 Cancel
               </Button>
-              <Button type="submit" className="bg-gold hover:bg-gold-dark text-black">
-                Submit Application
+              <Button type="submit" className="bg-gold hover:bg-gold-dark text-black" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
             </DialogFooter>
           </form>
