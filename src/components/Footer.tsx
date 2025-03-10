@@ -46,7 +46,7 @@ const Footer = () => {
           {/* Column 1: About */}
           <div>
             <div className="flex items-center mb-6">
-              <span className="text-2xl font-display font-bold text-gold">Luxry Privilege</span>
+              <span className="text-2xl font-display font-bold text-gold">Luxury Privilege</span>
               <span className="text-2xl font-display font-light text-white ml-1">Club</span>
             </div>
             <p className="mb-6">
