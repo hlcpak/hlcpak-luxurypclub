@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -41,8 +40,9 @@ const HotelDeals = () => {
 
   // Silver membership discount (10%)
   const calculateSilverPrice = (regularPrice: number, memberPrice: number) => {
-    // Apply silver discount to member price (10% off)
-    return memberPrice - (memberPrice * 0.10);
+    // Convert to PKR and apply silver discount to member price (10% off)
+    const priceInPKR = memberPrice * 280; // Assuming 1 USD = 280 PKR
+    return priceInPKR - (priceInPKR * 0.10);
   };
 
   return (
@@ -113,9 +113,9 @@ const HotelDeals = () => {
                             <div>
                               <span className="text-xs text-white/50">Member Price</span>
                               <div className="text-xl font-display font-bold text-gold">
-                                ${deal.member_price}
+                                PKR {(deal.member_price * 280).toLocaleString()}
                                 <span className="text-sm text-white/60 ml-1 line-through">
-                                  ${deal.regular_price}
+                                  PKR {(deal.regular_price * 280).toLocaleString()}
                                 </span>
                               </div>
                             </div>
@@ -127,11 +127,11 @@ const HotelDeals = () => {
                           
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                              <div className="bg-[#C8C8C9]/20 border border-[#C8C8C9] text-[#C8C8C9] text-xs px-2 py-0.5 rounded">
+                              <div className="bg-[#C8C8C9] text-black text-xs px-2 py-0.5 rounded font-medium">
                                 Silver
                               </div>
                               <span className="text-sm font-medium text-[#C8C8C9]">
-                                ${calculateSilverPrice(deal.regular_price, deal.member_price).toFixed(0)}
+                                PKR {calculateSilverPrice(deal.regular_price, deal.member_price).toLocaleString()}
                               </span>
                             </div>
                           </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -106,9 +105,9 @@ const TourPackages = () => {
                           <div className="opacity-100">
                             <span className="text-xs text-white/50">Member Price</span>
                             <div className="text-xl font-display font-bold text-gold">
-                              ${pkg.member_price}
+                              PKR {(pkg.member_price * 280).toLocaleString()}
                               <span className="text-sm text-white/60 ml-1 line-through">
-                                ${pkg.regular_price}
+                                PKR {(pkg.regular_price * 280).toLocaleString()}
                               </span>
                             </div>
                           </div>
