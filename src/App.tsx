@@ -10,7 +10,8 @@ import HotelDeals from "./pages/HotelDeals";
 import HotelDealDetail from "./pages/HotelDealDetail";
 import TourPackages from "./pages/TourPackages";
 import TourPackageDetail from "./pages/TourPackageDetail";
-import Videos from "./pages/Videos";
+import Blog from "./pages/Blog";
+import BlogDetail from "./pages/BlogDetail";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +30,8 @@ const App = () => (
           <Route path="/deals/:id" element={<HotelDealDetail />} />
           <Route path="/packages" element={<TourPackages />} />
           <Route path="/packages/:id" element={<TourPackageDetail />} />
-          <Route path="/videos" element={<Videos />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
