@@ -16,7 +16,15 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1
+    }
+  }
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

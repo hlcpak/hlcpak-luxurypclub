@@ -6,18 +6,30 @@ import { getTourPackages, TourPackage } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import DealCard from '@/components/deals/DealCard';
 import { Search, Filter, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 const TourPackages = () => {
-  const [packages, setPackages] = useState<TourPackage[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPackages, setFilteredPackages] = useState<TourPackage[]>([]);
   const { toast } = useToast();
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Use React Query for data fetching
+  const { data: packages = [], isLoading } = useQuery({
+    queryKey: ['tourPackages'],
+    queryFn: getTourPackages,
+    onError: (error: Error) => {
+      console.error('Error fetching tour packages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load tour packages",
+        variant: "destructive"
+      });
+    }
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchPackages();
   }, []);
 
   useEffect(() => {
@@ -27,28 +39,10 @@ const TourPackages = () => {
         pkg.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredPackages(filtered);
+    } else {
+      setFilteredPackages([]);
     }
   }, [searchTerm, packages]);
-
-  const fetchPackages = async () => {
-    try {
-      setLoading(true);
-      console.log('Fetching tour packages...');
-      const tourPackages = await getTourPackages();
-      console.log('Tour packages fetched:', tourPackages);
-      setPackages(tourPackages);
-      setFilteredPackages(tourPackages);
-    } catch (error) {
-      console.error('Error fetching tour packages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tour packages",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getDelayClass = (index: number): string => {
     switch (index % 3) {
@@ -58,6 +52,20 @@ const TourPackages = () => {
       default: return 'delay-100';
     }
   };
+
+  // Set up delay classes for animation after component mounts
+  useEffect(() => {
+    // Add classes to animate items in
+    if (itemsRef.current.length > 0 && !isLoading) {
+      itemsRef.current.forEach((item, i) => {
+        if (item) {
+          setTimeout(() => {
+            item.classList.remove('opacity-0', 'translate-y-10');
+          }, 100 * (i % 3));
+        }
+      });
+    }
+  }, [filteredPackages, isLoading]);
 
   return (
     <div className="min-h-screen bg-black overflow-hidden">
@@ -110,7 +118,7 @@ const TourPackages = () => {
               </div>
             </div>
 
-            {loading ? (
+            {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-gold mb-4" />
                 <p className="text-white/70 text-lg">Loading tour packages...</p>
@@ -140,6 +148,8 @@ const TourPackages = () => {
                       Clear search
                     </button>
                   </div>
+                ) : packages.length > 0 ? (
+                  <p className="text-white/70 text-xl">No tour packages match your criteria. Please try a different search.</p>
                 ) : (
                   <p className="text-white/70 text-xl">No tour packages available at the moment. Please check back later.</p>
                 )}
