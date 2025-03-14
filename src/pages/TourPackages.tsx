@@ -18,13 +18,15 @@ const TourPackages = () => {
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ['tourPackages'],
     queryFn: getTourPackages,
-    onError: (error: Error) => {
-      console.error('Error fetching tour packages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tour packages",
-        variant: "destructive"
-      });
+    onSettled: (data, error) => {
+      if (error) {
+        console.error('Error fetching tour packages:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load tour packages",
+          variant: "destructive"
+        });
+      }
     }
   });
 
