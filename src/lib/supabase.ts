@@ -41,6 +41,7 @@ export type TourPackage = {
   member_price: number;
   duration: string;
   description?: string;
+  itinerary?: string;
   created_at: string;
 }
 
@@ -88,17 +89,42 @@ export const getHotelDeals = async (): Promise<HotelDeal[]> => {
 };
 
 export const getTourPackages = async (): Promise<TourPackage[]> => {
-  const { data, error } = await supabase
-    .from('tour_packages')
-    .select('*')
-    .order('id', { ascending: true });
-  
-  if (error) {
-    console.error('Error fetching tour packages:', error);
-    return [];
+  try {
+    const { data, error } = await supabase
+      .from('tour_packages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching tour packages:', error);
+      throw new Error(error.message);
+    }
+
+    return data as TourPackage[];
+  } catch (error) {
+    console.error('Error in getTourPackages:', error);
+    throw error;
   }
-  
-  return data || [];
+};
+
+export const getTourPackageById = async (id: number): Promise<TourPackage | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('tour_packages')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching tour package by ID:', error);
+      throw new Error(error.message);
+    }
+
+    return data as TourPackage;
+  } catch (error) {
+    console.error('Error in getTourPackageById:', error);
+    throw error;
+  }
 };
 
 export const getUsers = async (): Promise<User[]> => {
@@ -174,49 +200,64 @@ export const deleteHotelDeal = async (id: number): Promise<boolean> => {
   return true;
 };
 
-export const addTourPackage = async (pkg: Omit<TourPackage, 'id' | 'created_at'>): Promise<TourPackage | null> => {
-  const { data, error } = await supabase
-    .from('tour_packages')
-    .insert([{ ...pkg }])
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error adding tour package:', error);
-    return null;
+export const addTourPackage = async (tourPackage: Omit<TourPackage, 'id' | 'created_at'>): Promise<TourPackage | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('tour_packages')
+      .insert([tourPackage])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding tour package:', error);
+      throw new Error(error.message);
+    }
+
+    return data as TourPackage;
+  } catch (error) {
+    console.error('Error in addTourPackage:', error);
+    throw error;
   }
-  
-  return data;
 };
 
-export const updateTourPackage = async (id: number, updates: Partial<TourPackage>): Promise<TourPackage | null> => {
-  const { data, error } = await supabase
-    .from('tour_packages')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error updating tour package:', error);
-    return null;
+export const updateTourPackage = async (id: number, tourPackage: Partial<TourPackage>): Promise<TourPackage | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('tour_packages')
+      .update(tourPackage)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating tour package:', error);
+      throw new Error(error.message);
+    }
+
+    return data as TourPackage;
+  } catch (error) {
+    console.error('Error in updateTourPackage:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const deleteTourPackage = async (id: number): Promise<boolean> => {
-  const { error } = await supabase
-    .from('tour_packages')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error deleting tour package:', error);
-    return false;
+  try {
+    const { error } = await supabase
+      .from('tour_packages')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting tour package:', error);
+      throw new Error(error.message);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in deleteTourPackage:', error);
+    throw error;
   }
-  
-  return true;
 };
 
 export const addUser = async (user: Omit<User, 'id' | 'created_at'>): Promise<User | null> => {

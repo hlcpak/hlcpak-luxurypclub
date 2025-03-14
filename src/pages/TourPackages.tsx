@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -17,15 +16,7 @@ const TourPackages = () => {
   // Use React Query for data fetching with proper error handling
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ['tourPackages'],
-    queryFn: getTourPackages,
-    onError: (error: any) => {
-      console.error('Error fetching tour packages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tour packages",
-        variant: "destructive"
-      });
-    }
+    queryFn: getTourPackages
   });
 
   useEffect(() => {

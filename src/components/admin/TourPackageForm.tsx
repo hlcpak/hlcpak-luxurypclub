@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash } from 'lucide-react';
 import { addTourPackage, updateTourPackage, TourPackage } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ type FormValues = {
   member_price: number;
   duration: string;
   description: string;
+  itinerary: string;
 };
 
 type TourPackageFormProps = {
@@ -44,6 +45,7 @@ const TourPackageForm = ({ package: tourPackage, onSuccess }: TourPackageFormPro
       member_price: tourPackage.member_price,
       duration: tourPackage.duration,
       description: tourPackage.description || '',
+      itinerary: tourPackage.itinerary || '',
     } : {
       name: '',
       location: '',
@@ -54,6 +56,7 @@ const TourPackageForm = ({ package: tourPackage, onSuccess }: TourPackageFormPro
       member_price: 0,
       duration: '',
       description: '',
+      itinerary: '',
     }
   });
 
@@ -114,6 +117,10 @@ const TourPackageForm = ({ package: tourPackage, onSuccess }: TourPackageFormPro
 
   const handleAIContentGenerated = (content: string) => {
     form.setValue('description', content);
+  };
+
+  const handleItineraryGenerated = (content: string) => {
+    form.setValue('itinerary', content);
   };
 
   return (
@@ -271,6 +278,31 @@ const TourPackageForm = ({ package: tourPackage, onSuccess }: TourPackageFormPro
                 <Textarea 
                   placeholder="Describe the tour package and what it includes..."
                   rows={6}
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="itinerary"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex justify-between items-center">
+                <FormLabel>Itinerary</FormLabel>
+                <AIContentGenerator 
+                  onGeneratedContent={handleItineraryGenerated}
+                  defaultPrompt={`Create a detailed day-by-day itinerary for a tour in ${form.getValues().location}`}
+                  buttonText="Generate Itinerary"
+                />
+              </div>
+              <FormControl>
+                <Textarea 
+                  placeholder="Add a day-by-day itinerary for this tour package..."
+                  rows={8}
                   {...field} 
                 />
               </FormControl>

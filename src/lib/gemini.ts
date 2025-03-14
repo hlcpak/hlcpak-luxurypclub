@@ -77,6 +77,15 @@ export const generateDealDescription = async (location: string, dealType: 'hotel
   return generateContent(prompt);
 };
 
+export const generateItinerary = async (location: string): Promise<GeminiResponse> => {
+  const prompt = `Create a detailed day-by-day itinerary for a luxury tour in ${location}.
+  Include 5-7 days of activities, with specific attractions, recommended restaurants, and unique experiences.
+  Format each day clearly with a heading (Day 1, Day 2, etc.) followed by morning, afternoon, and evening activities.
+  Keep the tone sophisticated and focus on exclusive experiences that luxury travelers would appreciate.`;
+  
+  return generateContent(prompt);
+};
+
 export const useAIContentGenerator = () => {
   const generateAndHandle = async (promptFn: (input: string) => Promise<GeminiResponse>, input: string) => {
     try {
@@ -105,6 +114,7 @@ export const useAIContentGenerator = () => {
   return {
     generateBlog: (topic: string) => generateAndHandle(generateBlogContent, topic),
     generateDescription: (location: string, dealType: 'hotel' | 'tour') => 
-      generateAndHandle((input) => generateDealDescription(input, dealType), location)
+      generateAndHandle((input) => generateDealDescription(input, dealType), location),
+    generateItinerary: (location: string) => generateAndHandle(generateItinerary, location)
   };
 };
