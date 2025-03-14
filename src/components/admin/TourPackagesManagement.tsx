@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -16,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -37,13 +38,9 @@ import {
 import TourPackageForm from '@/components/admin/TourPackageForm';
 
 const TourPackagesManagement = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<TourPackage | null>(null);
   const { toast } = useToast();
   
-  // Fixed React Query implementation - removed onError option
   const { data: tourPackages = [], isLoading } = useQuery({
     queryKey: ['tourPackages'],
     queryFn: getTourPackages
@@ -51,30 +48,24 @@ const TourPackagesManagement = () => {
 
   const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation(
-    (id: number) => deleteTourPackage(id),
-    {
-      onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Tour package deleted successfully.',
-        });
-        queryClient.invalidateQueries({ queryKey: ['tourPackages'] });
-        setIsDeleteDialogOpen(false);
-      },
-      onError: (error: any) => {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to delete tour package.',
-          variant: 'destructive',
-        });
-      },
-    }
-  );
-
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
-  };
+  // Fix mutation by specifying the correct generic types
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteTourPackage(id),
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Tour package deleted successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['tourPackages'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete tour package.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   if (isLoading) {
     return <div>Loading tour packages...</div>;
@@ -103,7 +94,7 @@ const TourPackagesManagement = () => {
                   Create a new tour package.
                 </DialogDescription>
               </DialogHeader>
-              <TourPackageForm onSuccess={() => setIsAddDialogOpen(false)} />
+              <TourPackageForm onSuccess={() => {}} />
               <DialogClose asChild>
                 <Button type="button" variant="secondary">
                   Cancel
@@ -150,7 +141,7 @@ const TourPackagesManagement = () => {
                       </DialogHeader>
                       <TourPackageForm
                         package={selectedPackage}
-                        onSuccess={() => setIsEditDialogOpen(false)}
+                        onSuccess={() => {}}
                       />
                       <DialogClose asChild>
                         <Button type="button" variant="secondary">
@@ -184,14 +175,21 @@ const TourPackagesManagement = () => {
                           </Button>
                         </DialogClose>
                         <Button
-                          variant="primary"
+                          variant="destructive"
                           onClick={() => {
                             if (selectedPackage) {
-                              handleDelete(selectedPackage.id);
+                              deleteMutation.mutate(selectedPackage.id);
                             }
                           }}
                         >
-                          Delete
+                          {deleteMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            "Delete"
+                          )}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
