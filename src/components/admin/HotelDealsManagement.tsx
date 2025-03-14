@@ -32,9 +32,6 @@ const HotelDealsManagement = () => {
   const { data: hotelDeals = [], isLoading } = useQuery({
     queryKey: ['hotelDeals'],
     queryFn: getHotelDeals,
-    onSuccess: (data) => {
-      console.log('Successfully fetched hotel deals:', data.length);
-    },
     onError: (error: any) => {
       console.error('Error fetching hotel deals:', error);
       toast({

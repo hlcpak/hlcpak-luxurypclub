@@ -261,7 +261,7 @@ const TourPackageForm = ({ package: tourPackage, onSuccess }: TourPackageFormPro
               <div className="flex justify-between items-center">
                 <FormLabel>Description</FormLabel>
                 <AIContentGenerator 
-                  onContentGenerated={handleAIContentGenerated}
+                  onGeneratedContent={handleAIContentGenerated}
                   generateFor="description"
                   contextData={form.getValues().location}
                   contextType="tour"

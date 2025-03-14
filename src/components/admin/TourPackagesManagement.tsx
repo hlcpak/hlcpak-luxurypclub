@@ -32,9 +32,6 @@ const TourPackagesManagement = () => {
   const { data: tourPackages = [], isLoading } = useQuery({
     queryKey: ['tourPackages'],
     queryFn: getTourPackages,
-    onSuccess: (data) => {
-      console.log('Successfully fetched tour packages:', data.length);
-    },
     onError: (error: any) => {
       console.error('Error fetching tour packages:', error);
       toast({

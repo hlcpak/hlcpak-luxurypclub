@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Loader2 } from 'lucide-react';
-import { generateContent } from '@/lib/gemini';
+import { generateContent, generateDealDescription } from '@/lib/gemini';
 import { useToast } from '@/components/ui/use-toast';
 
 interface AIContentGeneratorProps {
@@ -14,6 +14,10 @@ interface AIContentGeneratorProps {
   label?: string;
   buttonText?: string;
   placeholder?: string;
+  // New props to handle specialized generation
+  generateFor?: string;
+  contextData?: string;
+  contextType?: 'hotel' | 'tour';
 }
 
 export default function AIContentGenerator({
@@ -21,14 +25,17 @@ export default function AIContentGenerator({
   defaultPrompt = '',
   label = 'Generate with AI',
   buttonText = 'Generate',
-  placeholder = 'Enter a prompt for AI to generate content...'
+  placeholder = 'Enter a prompt for AI to generate content...',
+  generateFor,
+  contextData,
+  contextType
 }: AIContentGeneratorProps) {
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
-    if (!prompt) {
+    if (!prompt && !contextData) {
       toast({
         title: "Missing prompt",
         description: "Please enter a prompt for content generation",
@@ -40,7 +47,14 @@ export default function AIContentGenerator({
     setIsGenerating(true);
     
     try {
-      const result = await generateContent(prompt);
+      let result;
+      
+      // Use contextData and contextType for specialized generation if available
+      if (generateFor === 'description' && contextData && contextType) {
+        result = await generateDealDescription(contextData, contextType);
+      } else {
+        result = await generateContent(prompt);
+      }
       
       if (result.error) {
         toast({
