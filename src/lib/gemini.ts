@@ -105,6 +105,6 @@ export const useAIContentGenerator = () => {
   return {
     generateBlog: (topic: string) => generateAndHandle(generateBlogContent, topic),
     generateDescription: (location: string, dealType: 'hotel' | 'tour') => 
-      generateAndHandle(generateDealDescription, location, dealType)
+      generateAndHandle((input) => generateDealDescription(input, dealType), location)
   };
 };
