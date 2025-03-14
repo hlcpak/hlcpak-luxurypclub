@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -17,7 +18,10 @@ const TourPackages = () => {
   const { data: packages = [], isLoading } = useQuery({
     queryKey: ['tourPackages'],
     queryFn: getTourPackages,
-    onError: (error) => {
+    onSuccess: (data) => {
+      console.log('Successfully fetched tour packages:', data.length);
+    },
+    onError: (error: any) => {
       console.error('Error fetching tour packages:', error);
       toast({
         title: "Error",

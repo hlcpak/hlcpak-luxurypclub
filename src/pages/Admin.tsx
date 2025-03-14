@@ -20,6 +20,8 @@ import {
   LogOut 
 } from 'lucide-react';
 import BlogManagement from '@/components/admin/BlogManagement';
+import HotelDealsManagement from '@/components/admin/HotelDealsManagement';
+import TourPackagesManagement from '@/components/admin/TourPackagesManagement';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -162,8 +164,19 @@ const Admin = () => {
             <BlogManagement />
           )}
           
+          {activeTab === 'hotel-deals' && (
+            <HotelDealsManagement />
+          )}
+          
+          {activeTab === 'tour-packages' && (
+            <TourPackagesManagement />
+          )}
+          
           {/* Placeholder content for other tabs */}
-          {(activeTab !== 'dashboard' && activeTab !== 'blogs') && (
+          {(activeTab !== 'dashboard' && 
+            activeTab !== 'blogs' && 
+            activeTab !== 'hotel-deals' && 
+            activeTab !== 'tour-packages') && (
             <Card>
               <CardHeader>
                 <CardTitle>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}</CardTitle>
