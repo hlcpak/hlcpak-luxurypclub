@@ -17,11 +17,13 @@ import {
   ShoppingBag, 
   FileText,
   Settings, 
-  LogOut 
+  LogOut,
+  Bell
 } from 'lucide-react';
 import BlogManagement from '@/components/admin/BlogManagement';
 import HotelDealsManagement from '@/components/admin/HotelDealsManagement';
 import TourPackagesManagement from '@/components/admin/TourPackagesManagement';
+import OrdersManagement from '@/components/admin/OrdersManagement';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -112,7 +114,7 @@ const Admin = () => {
         </div>
         
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 overflow-auto">
           {activeTab === 'dashboard' && (
             <Card>
               <CardHeader>
@@ -172,11 +174,16 @@ const Admin = () => {
             <TourPackagesManagement />
           )}
           
+          {activeTab === 'orders' && (
+            <OrdersManagement />
+          )}
+          
           {/* Placeholder content for other tabs */}
           {(activeTab !== 'dashboard' && 
             activeTab !== 'blogs' && 
             activeTab !== 'hotel-deals' && 
-            activeTab !== 'tour-packages') && (
+            activeTab !== 'tour-packages' &&
+            activeTab !== 'orders') && (
             <Card>
               <CardHeader>
                 <CardTitle>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}</CardTitle>

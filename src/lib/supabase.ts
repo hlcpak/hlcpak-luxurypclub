@@ -73,6 +73,25 @@ export type SiteSetting = {
   updated_at: string;
 }
 
+export type BookingType = 'hotel' | 'tour';
+
+export type Order = {
+  id: number;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  booking_type: BookingType;
+  item_id: number;
+  item_name: string;
+  booking_date: string;
+  travel_date: string;
+  guests: number;
+  total_price: number;
+  notes: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  created_at: string;
+}
+
 // Database service functions
 export const getHotelDeals = async (): Promise<HotelDeal[]> => {
   const { data, error } = await supabase
@@ -419,4 +438,97 @@ export const updateSystemSetting = async (id: number, value: string): Promise<Si
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
+};
+
+export const getOrders = async (): Promise<Order[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching orders:', error);
+      throw new Error(error.message);
+    }
+
+    return data as Order[];
+  } catch (error) {
+    console.error('Error in getOrders:', error);
+    throw error;
+  }
+};
+
+export const getOrderById = async (id: number): Promise<Order | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching order by ID:', error);
+      throw new Error(error.message);
+    }
+
+    return data as Order;
+  } catch (error) {
+    console.error('Error in getOrderById:', error);
+    throw error;
+  }
+};
+
+export const addOrder = async (order: Omit<Order, 'id' | 'created_at'>): Promise<Order | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([order])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding order:', error);
+      throw new Error(error.message);
+    }
+
+    // Send email notification to admin
+    try {
+      await supabase.functions.invoke('admin-notification', {
+        body: {
+          orderDetails: data,
+          notificationType: 'new_order'
+        }
+      });
+    } catch (emailError) {
+      console.error('Error sending admin notification:', emailError);
+      // We don't want to fail the order creation if notification fails
+    }
+
+    return data as Order;
+  } catch (error) {
+    console.error('Error in addOrder:', error);
+    throw error;
+  }
+};
+
+export const updateOrderStatus = async (id: number, status: 'pending' | 'confirmed' | 'cancelled'): Promise<Order | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating order status:', error);
+      throw new Error(error.message);
+    }
+
+    return data as Order;
+  } catch (error) {
+    console.error('Error in updateOrderStatus:', error);
+    throw error;
+  }
 };
