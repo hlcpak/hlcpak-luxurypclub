@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -24,13 +23,18 @@ import BlogManagement from '@/components/admin/BlogManagement';
 import HotelDealsManagement from '@/components/admin/HotelDealsManagement';
 import TourPackagesManagement from '@/components/admin/TourPackagesManagement';
 import OrdersManagement from '@/components/admin/OrdersManagement';
+import UsersManagement from '@/components/admin/UsersManagement';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   
-  // Placeholder functions
-  const handleLogout = () => {
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
   };
   
   return (
@@ -123,7 +127,6 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Stats cards would go here */}
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -162,6 +165,10 @@ const Admin = () => {
             </Card>
           )}
           
+          {activeTab === 'users' && (
+            <UsersManagement />
+          )}
+          
           {activeTab === 'blogs' && (
             <BlogManagement />
           )}
@@ -178,8 +185,8 @@ const Admin = () => {
             <OrdersManagement />
           )}
           
-          {/* Placeholder content for other tabs */}
           {(activeTab !== 'dashboard' && 
+            activeTab !== 'users' &&
             activeTab !== 'blogs' && 
             activeTab !== 'hotel-deals' && 
             activeTab !== 'tour-packages' &&

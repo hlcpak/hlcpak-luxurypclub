@@ -13,6 +13,7 @@ export type User = {
   email: string;
   membership_tier: 'Silver' | 'Gold' | 'Platinum';
   points: number;
+  status?: 'active' | 'inactive';
   created_at: string;
 }
 
@@ -147,17 +148,22 @@ export const getTourPackageById = async (id: number): Promise<TourPackage | null
 };
 
 export const getUsers = async (): Promise<User[]> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error('Error fetching users:', error);
-    return [];
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw new Error(error.message);
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in getUsers:', error);
+    throw error;
   }
-  
-  return data || [];
 };
 
 export const getTransactions = async (): Promise<Transaction[]> => {
@@ -280,48 +286,63 @@ export const deleteTourPackage = async (id: number): Promise<boolean> => {
 };
 
 export const addUser = async (user: Omit<User, 'id' | 'created_at'>): Promise<User | null> => {
-  const { data, error } = await supabase
-    .from('users')
-    .insert([{ ...user }])
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error adding user:', error);
-    return null;
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ ...user }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding user:', error);
+      throw new Error(error.message);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in addUser:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
-  const { data, error } = await supabase
-    .from('users')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error updating user:', error);
-    return null;
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating user:', error);
+      throw new Error(error.message);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in updateUser:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const deleteUser = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('users')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error deleting user:', error);
-    return false;
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw new Error(error.message);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in deleteUser:', error);
+    throw error;
   }
-  
-  return true;
 };
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction | null> => {
