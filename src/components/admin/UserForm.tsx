@@ -31,7 +31,7 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
   membership_tier: z.enum(['Silver', 'Gold', 'Platinum']),
   points: z.coerce.number().int().min(0, 'Points must be a positive number'),
-  status: z.enum(['active', 'inactive']).optional(),
+  status: z.enum(['active', 'inactive']),
 });
 
 interface UserFormProps {
@@ -50,7 +50,7 @@ const UserForm = ({ user, onSuccess }: UserFormProps) => {
       email: user.email,
       membership_tier: user.membership_tier as 'Silver' | 'Gold' | 'Platinum',
       points: user.points,
-      status: (user.status as 'active' | 'inactive') || 'active',
+      status: (user.status || 'active') as 'active' | 'inactive',
     },
   });
 
@@ -66,6 +66,7 @@ const UserForm = ({ user, onSuccess }: UserFormProps) => {
       onSuccess();
     },
     onError: (error: any) => {
+      console.error('Error updating user:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to update user',

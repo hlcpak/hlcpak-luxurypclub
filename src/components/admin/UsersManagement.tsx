@@ -38,10 +38,16 @@ const UsersManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
-    queryFn: getUsers
+    queryFn: getUsers,
+    refetchOnWindowFocus: true
   });
+
+  // Log any errors for debugging
+  if (error) {
+    console.error('Error fetching users:', error);
+  }
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<UserType> }) => 
@@ -56,6 +62,7 @@ const UsersManagement = () => {
       setIsStatusDialogOpen(false);
     },
     onError: (error: any) => {
+      console.error('Update user error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to update user.',

@@ -307,6 +307,8 @@ export const addUser = async (user: Omit<User, 'id' | 'created_at'>): Promise<Us
 
 export const updateUser = async (id: string, updates: Partial<User>): Promise<User | null> => {
   try {
+    console.log('Updating user with ID:', id, 'Updates:', updates);
+    
     const { data, error } = await supabase
       .from('users')
       .update(updates)
