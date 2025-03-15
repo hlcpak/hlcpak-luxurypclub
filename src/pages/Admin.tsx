@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Card, 
@@ -17,25 +18,71 @@ import {
   FileText,
   Settings, 
   LogOut,
-  Bell
+  Shield
 } from 'lucide-react';
 import BlogManagement from '@/components/admin/BlogManagement';
 import HotelDealsManagement from '@/components/admin/HotelDealsManagement';
 import TourPackagesManagement from '@/components/admin/TourPackagesManagement';
 import OrdersManagement from '@/components/admin/OrdersManagement';
 import UsersManagement from '@/components/admin/UsersManagement';
+import CreateMasterAdmin from '@/components/admin/CreateMasterAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [adminExists, setAdminExists] = useState(true);
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const checkAdminExists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('role', 'admin');
+          
+        if (error) {
+          console.error('Error checking admin:', error);
+          return;
+        }
+        
+        setAdminExists(data && data.length > 0);
+      } catch (error) {
+        console.error('Error in admin check:', error);
+      }
+    };
+    
+    checkAdminExists();
+  }, []);
   
   const handleLogout = async () => {
     await signOut();
     navigate('/');
   };
+  
+  // If no admin exists, show the create admin form first
+  if (!adminExists) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 border-b">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-8">
+          <CreateMasterAdmin />
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -103,6 +150,14 @@ const Admin = () => {
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Blog Posts
+                </Button>
+                <Button 
+                  variant={activeTab === 'master-admin' ? 'default' : 'ghost'} 
+                  className="w-full justify-start" 
+                  onClick={() => setActiveTab('master-admin')}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Master Admin
                 </Button>
                 <Button 
                   variant={activeTab === 'settings' ? 'default' : 'ghost'} 
@@ -185,12 +240,17 @@ const Admin = () => {
             <OrdersManagement />
           )}
           
+          {activeTab === 'master-admin' && (
+            <CreateMasterAdmin />
+          )}
+          
           {(activeTab !== 'dashboard' && 
             activeTab !== 'users' &&
             activeTab !== 'blogs' && 
             activeTab !== 'hotel-deals' && 
             activeTab !== 'tour-packages' &&
-            activeTab !== 'orders') && (
+            activeTab !== 'orders' &&
+            activeTab !== 'master-admin') && (
             <Card>
               <CardHeader>
                 <CardTitle>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}</CardTitle>

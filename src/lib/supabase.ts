@@ -14,6 +14,7 @@ export type User = {
   membership_tier: 'Silver' | 'Gold' | 'Platinum';
   points: number;
   status?: 'active' | 'inactive';
+  role?: 'user' | 'admin';
   created_at: string;
 }
 
