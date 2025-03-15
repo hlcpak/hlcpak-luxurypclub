@@ -23,28 +23,40 @@ serve(async (req) => {
     const { orderDetails, notificationType } = body;
 
     if (notificationType === 'new_order') {
-      // In a real implementation, you would send an email here
-      // For now, we'll just log the notification
+      // Log detailed information about the order
       console.log(`New order notification for order ID: ${orderDetails.id}`);
+      console.log(`User ID: ${orderDetails.user_id}`);
+      console.log(`Customer: ${orderDetails.customer_name} (${orderDetails.customer_email})`);
+      console.log(`${orderDetails.booking_type === 'hotel' ? 'Hotel' : 'Tour'}: ${orderDetails.item_name}`);
+      console.log(`Date: ${orderDetails.travel_date}`);
+      console.log(`Guests: ${orderDetails.guests}`);
+      console.log(`Total: $${orderDetails.total_price}`);
       console.log('Order details:', JSON.stringify(orderDetails, null, 2));
 
-      // You could use a service like Resend, SendGrid, etc. to send an email
+      // Format email content
+      const emailSubject = `New ${orderDetails.booking_type === 'hotel' ? 'Hotel' : 'Tour'} Booking: ${orderDetails.item_name}`;
+      const emailHtml = `
+        <h1>New Booking Received</h1>
+        <p><strong>Customer:</strong> ${orderDetails.customer_name}</p>
+        <p><strong>Email:</strong> ${orderDetails.customer_email}</p>
+        <p><strong>Phone:</strong> ${orderDetails.customer_phone || 'Not provided'}</p>
+        <p><strong>Booking:</strong> ${orderDetails.item_name}</p>
+        <p><strong>Type:</strong> ${orderDetails.booking_type === 'hotel' ? 'Hotel Stay' : 'Tour Package'}</p>
+        <p><strong>Date:</strong> ${new Date(orderDetails.travel_date).toLocaleDateString()}</p>
+        <p><strong>Guests:</strong> ${orderDetails.guests}</p>
+        <p><strong>Total:</strong> $${orderDetails.total_price}</p>
+        <p><strong>Notes:</strong> ${orderDetails.notes || 'None'}</p>
+        <hr>
+        <p>Please login to the admin dashboard to confirm or cancel this booking.</p>
+      `;
+
+      // In a real implementation, you would send an email here
       // Example with email service:
       /*
       await emailService.send({
         to: 'admin@example.com',
-        subject: `New Booking: ${orderDetails.item_name}`,
-        html: `
-          <h1>New Booking Received</h1>
-          <p><strong>Customer:</strong> ${orderDetails.customer_name}</p>
-          <p><strong>Email:</strong> ${orderDetails.customer_email}</p>
-          <p><strong>Phone:</strong> ${orderDetails.customer_phone}</p>
-          <p><strong>Booking:</strong> ${orderDetails.item_name}</p>
-          <p><strong>Date:</strong> ${orderDetails.travel_date}</p>
-          <p><strong>Guests:</strong> ${orderDetails.guests}</p>
-          <p><strong>Total:</strong> $${orderDetails.total_price}</p>
-          <p><strong>Notes:</strong> ${orderDetails.notes}</p>
-        `,
+        subject: emailSubject,
+        html: emailHtml,
       });
       */
 
@@ -53,7 +65,7 @@ serve(async (req) => {
         .from('admin_notifications')
         .insert({
           type: 'new_order',
-          content: `New booking for ${orderDetails.item_name} by ${orderDetails.customer_name}`,
+          content: `New ${orderDetails.booking_type === 'hotel' ? 'hotel' : 'tour'} booking for ${orderDetails.item_name} by ${orderDetails.customer_name}`,
           read: false,
           order_id: orderDetails.id
         });

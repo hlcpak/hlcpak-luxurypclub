@@ -5,12 +5,14 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { getHotelDeals, HotelDeal } from '@/lib/supabase';
+import { getHotelDeals, HotelDeal, addOrder } from '@/lib/supabase';
 import { Star, MapPin, Clock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HotelDealDetail = () => {
   const { id } = useParams();
@@ -19,8 +21,13 @@ const HotelDealDetail = () => {
   const [bookingDialog, setBookingDialog] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [guestCount, setGuestCount] = useState(2);
+  const [bookingDate, setBookingDate] = useState('');
+  const [notes, setNotes] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   // Silver membership discount (10%)
   const silverDiscount = 0.10;
@@ -29,6 +36,13 @@ const HotelDealDetail = () => {
     window.scrollTo(0, 0);
     fetchDeal();
   }, [id]);
+
+  useEffect(() => {
+    // Set default booking date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setBookingDate(tomorrow.toISOString().split('T')[0]);
+  }, []);
 
   const fetchDeal = async () => {
     try {
@@ -59,21 +73,64 @@ const HotelDealDetail = () => {
   };
 
   const handleBookNow = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book this hotel deal",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+    
     setBookingDialog(true);
   };
 
-  const handleConfirmBooking = () => {
-    // In a real app, this would save the booking to the database
-    setBookingDialog(false);
+  const handleConfirmBooking = async () => {
+    if (!user || !deal) return;
     
-    // Show success message
-    toast({
-      title: "Booking Confirmed",
-      description: `Your stay at ${deal?.name} has been booked successfully!`,
-      variant: "default"
-    });
-    
-    setBookingConfirmed(true);
+    try {
+      setIsSubmitting(true);
+      
+      const orderDetails = {
+        user_id: user.id,
+        customer_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Guest',
+        customer_email: user.email || '',
+        customer_phone: contactPhone,
+        booking_type: 'hotel' as const,
+        item_id: deal.id,
+        item_name: deal.name,
+        booking_date: new Date().toISOString(),
+        travel_date: new Date(bookingDate).toISOString(),
+        guests: guestCount,
+        total_price: calculateSilverPrice(deal.regular_price, deal.member_price),
+        notes: notes,
+        status: 'pending' as const,
+      };
+      
+      const newOrder = await addOrder(orderDetails);
+      
+      if (newOrder) {
+        setBookingDialog(false);
+        toast({
+          title: "Booking Confirmed",
+          description: `Your stay at ${deal.name} has been booked successfully!`,
+          variant: "default"
+        });
+        setBookingConfirmed(true);
+      } else {
+        throw new Error("Failed to create booking");
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Booking Failed",
+        description: "There was an error processing your booking. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Calculate silver member price with additional discount
@@ -271,6 +328,12 @@ const HotelDealDetail = () => {
                       <CheckCircle size={24} className="text-gold mx-auto mb-2" />
                       <h4 className="text-gold font-semibold mb-1">Booking Confirmed</h4>
                       <p className="text-white/70 text-sm">Your reservation has been successfully booked!</p>
+                      <Button 
+                        onClick={() => navigate('/my-bookings')} 
+                        className="mt-3 w-full bg-gold hover:bg-gold-dark text-black font-semibold"
+                      >
+                        View My Bookings
+                      </Button>
                     </div>
                   ) : (
                     <Button 
@@ -312,6 +375,41 @@ const HotelDealDetail = () => {
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="bookingDate" className="text-white">Travel Date</Label>
+                <Input 
+                  id="bookingDate"
+                  type="date"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  className="bg-white/5 border-white/20 text-white"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-white">Phone Number</Label>
+                <Input 
+                  id="phone"
+                  type="tel"
+                  placeholder="Your contact number"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  className="bg-white/5 border-white/20 text-white"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-white">Special Requests (Optional)</Label>
+                <Textarea 
+                  id="notes"
+                  placeholder="Any special requirements or requests"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="bg-white/5 border-white/20 text-white min-h-[100px]"
+                />
+              </div>
+              
               <div>
                 <h4 className="text-white mb-2">Booking Summary</h4>
                 <div className="bg-white/5 rounded p-3 space-y-2">
@@ -344,8 +442,15 @@ const HotelDealDetail = () => {
             <Button variant="outline" onClick={() => setBookingDialog(false)} className="border-white/20 text-white hover:bg-white/10">
               Cancel
             </Button>
-            <Button onClick={handleConfirmBooking} className="bg-gold hover:bg-gold-dark text-black">
-              Confirm Booking
+            <Button onClick={handleConfirmBooking} disabled={isSubmitting} className="bg-gold hover:bg-gold-dark text-black">
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin">⌛</span>
+                  Processing...
+                </>
+              ) : (
+                "Confirm Booking"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

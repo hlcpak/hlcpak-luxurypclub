@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          order_id: number | null
+          read: boolean | null
+          type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: number
+          order_id?: number | null
+          read?: boolean | null
+          type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: number
+          order_id?: number | null
+          read?: boolean | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hotel_deals: {
         Row: {
           created_at: string
@@ -48,6 +83,81 @@ export type Database = {
           name?: string
           rating?: number
           regular_price?: number
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          booking_date: string
+          booking_type: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          guests: number | null
+          id: number
+          item_id: number
+          item_name: string
+          notes: string | null
+          status: string
+          total_price: number
+          travel_date: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_date?: string
+          booking_type: string
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          guests?: number | null
+          id?: number
+          item_id: number
+          item_name: string
+          notes?: string | null
+          status?: string
+          total_price: number
+          travel_date?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          booking_type?: string
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          guests?: number | null
+          id?: number
+          item_id?: number
+          item_name?: string
+          notes?: string | null
+          status?: string
+          total_price?: number
+          travel_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
         }
         Relationships: []
       }
