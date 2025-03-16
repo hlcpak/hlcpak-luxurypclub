@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsersManagement from '@/components/admin/UsersManagement';
@@ -7,14 +8,7 @@ import OrdersManagement from '@/components/admin/OrdersManagement';
 import BlogManagement from '@/components/admin/BlogManagement';
 import CreateMasterAdmin from '@/components/admin/CreateMasterAdmin';
 import { useAuth } from '@/contexts/AuthContext';
-
-type OrderFilterState = {
-  status: 'pending' | 'confirmed' | 'cancelled' | 'all';
-  dateRange: {
-    from: Date | null;
-    to: Date | null;
-  };
-};
+import { OrderFilterState } from '@/types/admin';
 
 const Admin = () => {
   const [filterState, setFilterState] = useState<OrderFilterState>({

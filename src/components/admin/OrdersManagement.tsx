@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 import {
   Card,
   CardContent,
@@ -32,7 +31,20 @@ import {
 } from "@/components/ui/dialog";
 import { format } from 'date-fns';
 
-const OrdersManagement = () => {
+type OrderFilterState = {
+  status: 'pending' | 'confirmed' | 'cancelled' | 'all';
+  dateRange: {
+    from: Date | null;
+    to: Date | null;
+  };
+};
+
+interface OrdersManagementProps {
+  filterState: OrderFilterState;
+  setFilterState: Dispatch<SetStateAction<OrderFilterState>>;
+}
+
+const OrdersManagement: React.FC<OrdersManagementProps> = ({ filterState, setFilterState }) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,7 +185,6 @@ const OrdersManagement = () => {
         </Table>
       </CardContent>
 
-      {/* Order Details Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
