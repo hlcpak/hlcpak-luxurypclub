@@ -556,3 +556,87 @@ export const updateOrderStatus = async (id: number, status: 'pending' | 'confirm
     throw error;
   }
 };
+
+export const checkAdminExists = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'admin')
+      .limit(1);
+    
+    if (error) {
+      console.error('Error checking if admin exists:', error);
+      return false;
+    }
+    
+    return data && data.length > 0;
+  } catch (error) {
+    console.error('Error in checkAdminExists:', error);
+    return false;
+  }
+};
+
+export const createMasterAdmin = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    // First check if admin already exists
+    const adminExists = await checkAdminExists();
+    if (adminExists) {
+      return { 
+        success: false, 
+        message: 'An admin account already exists. Cannot create another master admin.' 
+      };
+    }
+
+    // Create the admin user in auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: 'Master Admin'
+        }
+      }
+    });
+
+    if (authError) {
+      console.error('Error creating admin user in auth:', authError);
+      return { 
+        success: false, 
+        message: `Failed to create admin: ${authError.message}` 
+      };
+    }
+
+    if (!authData.user) {
+      return { 
+        success: false, 
+        message: 'Failed to create admin user: No user data returned' 
+      };
+    }
+
+    // Update the user's role to admin in the users table
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ role: 'admin' })
+      .eq('id', authData.user.id);
+
+    if (updateError) {
+      console.error('Error updating user role to admin:', updateError);
+      return { 
+        success: false, 
+        message: `Admin created but role update failed: ${updateError.message}` 
+      };
+    }
+
+    return { 
+      success: true, 
+      message: 'Master admin created successfully! Please check email for verification.' 
+    };
+  } catch (error: any) {
+    console.error('Error in createMasterAdmin:', error);
+    return { 
+      success: false, 
+      message: `Unexpected error: ${error.message}` 
+    };
+  }
+};

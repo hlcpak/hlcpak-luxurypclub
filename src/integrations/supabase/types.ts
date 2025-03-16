@@ -246,6 +246,7 @@ export type Database = {
           membership_tier: string
           name: string
           points: number
+          role: string | null
           status: string | null
         }
         Insert: {
@@ -255,6 +256,7 @@ export type Database = {
           membership_tier: string
           name: string
           points?: number
+          role?: string | null
           status?: string | null
         }
         Update: {
@@ -264,6 +266,7 @@ export type Database = {
           membership_tier?: string
           name?: string
           points?: number
+          role?: string | null
           status?: string | null
         }
         Relationships: []
