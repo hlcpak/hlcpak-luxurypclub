@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,42 +10,34 @@ import { createMasterAdmin, checkAdminExists } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
 const CreateMasterAdmin = () => {
-  const [email, setEmail] = useState('admin@luxuryprivilegeclub.com');
-  const [password, setPassword] = useState('Admin@123');
+  const [email, setEmail] = useState('shobyrao@gmail.com');
+  const [password, setPassword] = useState('@Power2011!');
   const [loading, setLoading] = useState(false);
+  const [created, setCreated] = useState(false);
   const { toast } = useToast();
 
-  const { data: adminExists, isLoading: checkingAdmin } = useQuery({
+  const { data: adminExists, isLoading: checkingAdmin, refetch } = useQuery({
     queryKey: ['adminExists'],
     queryFn: checkAdminExists
   });
+
+  useEffect(() => {
+    // Create the master admin automatically when the component mounts
+    // if there isn't already an admin account
+    const autoCreateAdmin = async () => {
+      if (adminExists === false && !created && !loading) {
+        handleCreateAdmin();
+      }
+    };
+    
+    autoCreateAdmin();
+  }, [adminExists, created]);
 
   const handleCreateAdmin = async () => {
     if (!email || !password) {
       toast({
         title: 'Missing Information',
         description: 'Please provide both email and password.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    // Simple email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    // Simple password validation
-    if (password.length < 6) {
-      toast({
-        title: 'Password Too Short',
-        description: 'Password must be at least 6 characters long.',
         variant: 'destructive'
       });
       return;
@@ -61,6 +53,9 @@ const CreateMasterAdmin = () => {
           title: 'Success',
           description: result.message
         });
+        setCreated(true);
+        // Refresh the admin check
+        refetch();
       } else {
         toast({
           title: 'Error',
@@ -92,7 +87,7 @@ const CreateMasterAdmin = () => {
     );
   }
 
-  if (adminExists) {
+  if (adminExists || created) {
     return null; // Don't show this component if admin already exists
   }
 
@@ -101,7 +96,7 @@ const CreateMasterAdmin = () => {
       <CardHeader className="pb-3">
         <CardTitle className="text-red-700">Initial Setup Required</CardTitle>
         <CardDescription className="text-red-600">
-          No admin user found. Create a master admin account to manage the system.
+          No admin user found. Creating a master admin account to manage the system.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -124,9 +119,6 @@ const CreateMasterAdmin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <p className="text-sm text-muted-foreground">
-              Password must be at least 6 characters long.
-            </p>
           </div>
         </div>
       </CardContent>

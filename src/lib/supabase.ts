@@ -579,15 +579,6 @@ export const checkAdminExists = async (): Promise<boolean> => {
 
 export const createMasterAdmin = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
   try {
-    // First check if admin already exists
-    const adminExists = await checkAdminExists();
-    if (adminExists) {
-      return { 
-        success: false, 
-        message: 'An admin account already exists. Cannot create another master admin.' 
-      };
-    }
-
     // Create the admin user in auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
