@@ -18,7 +18,6 @@ import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import MyBookings from "./pages/MyBookings";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient({
@@ -55,9 +54,9 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
-              <AdminRoute>
+              <ProtectedRoute>
                 <Admin />
-              </AdminRoute>
+              </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -4,8 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 
-type Role = 'user' | 'admin';
-
 type AuthContextType = {
   session: Session | null;
   user: User | null;
@@ -14,8 +12,6 @@ type AuthContextType = {
   signUp: (email: string, password: string, name: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
-  userRole: Role;
-  isAdmin: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,28 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<Role>('user');
   const { toast } = useToast();
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return 'user';
-      }
-
-      return (data?.role as Role) || 'user';
-    } catch (error) {
-      console.error('Unexpected error fetching user role:', error);
-      return 'user';
-    }
-  };
 
   useEffect(() => {
     const setData = async () => {
@@ -58,11 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setSession(session);
         setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        }
       } catch (error) {
         console.error('Unexpected error fetching session:', error);
       } finally {
@@ -73,17 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setData();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        } else {
-          setUserRole('user');
-        }
-        
         setLoading(false);
       }
     );
@@ -94,7 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const isAuthenticated = !!session && !!user;
-  const isAdmin = isAuthenticated && userRole === 'admin';
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -177,17 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      session, 
-      user, 
-      loading, 
-      signIn, 
-      signUp, 
-      signOut, 
-      isAuthenticated, 
-      userRole,
-      isAdmin
-    }}>
+    <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
